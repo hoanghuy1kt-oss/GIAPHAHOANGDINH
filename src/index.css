@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-wood-dark: #321716;        /* Màu gỗ gụ sậm */
+  --color-wood-medium: #4A2C2A;      /* Màu gỗ lim chính */
+  --color-gold-accent: #C5A059;      /* Màu sơn thếp vàng */
+  --color-gold-light: #FED488;       /* Màu vàng sáng */
+  --color-paper-base: #F5F2E9;       /* Màu nền giấy đó ấm */
+  --color-paper-light: #FFF8F5;      /* Màu giấy sáng */
+  --color-paper-dark: #E1D8D4;       /* Màu giấy sẫm màu */
+  --color-charcoal: #2D2926;         /* Màu chữ chính */
+
+  --font-display: "EB Garamond", serif;
+  --font-sans: "Be Vietnam Pro", sans-serif;
+}
+
+/* Custom Scrollbar for a premium editorial look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-paper-base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-wood-medium);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-wood-dark);
+}
+
+
+
+
+/* Subtle bronze drum background watermark */
+.bronze-drum-bg {
+  background-image: radial-gradient(rgba(197, 160, 89, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Transition for view changes */
+.fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Floating Prayer Bubble Animation */
+@keyframes floatUpPrayer {
+  0% {
+    transform: translateY(30px) scale(0.95);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.95;
+    transform: translateY(0px) scale(1);
+  }
+  75% {
+    opacity: 0.85;
+    transform: translateY(-25px) scale(1);
+  }
+  100% {
+    transform: translateY(-50px) scale(0.95);
+    opacity: 0;
+  }
+}
+
+.prayer-bubble {
+  animation: floatUpPrayer 6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Lamp and Lantern Flicker Animations */
+@keyframes lightFlicker {
+  0%, 100% { opacity: 0.75; transform: scale(0.96); }
+  25%       { opacity: 0.95; transform: scale(1.05); }
+  50%       { opacity: 0.65; transform: scale(0.92); }
+  75%       { opacity: 0.88; transform: scale(1.02); }
+}
+
+.lamp-glow {
+  background: radial-gradient(circle, rgba(255, 210, 80, 0.85) 0%, rgba(255, 160, 30, 0.5) 35%, rgba(255, 120, 10, 0.2) 65%, transparent 80%);
+  box-shadow: 0 0 18px 8px rgba(255, 190, 50, 0.3);
+  transform-origin: center;
+}
+
+.lantern-glow {
+  background: radial-gradient(circle, rgba(255, 220, 120, 0.7) 0%, rgba(255, 180, 60, 0.4) 40%, rgba(255, 140, 20, 0.15) 70%, transparent 85%);
+  box-shadow: 0 0 30px 15px rgba(255, 190, 60, 0.2);
+  transform-origin: center;
+}

@@ -180,7 +180,10 @@ export default function Admin({
           nextData.generation = parent.generation + 1;
           // Auto-fill Mother if Father has spouse
           if (parent.spouseId) {
-            nextData.motherId = parent.spouseId.toString();
+            const spouseIds = String(parent.spouseId).split(',').map(s => s.trim()).filter(Boolean);
+            if (spouseIds.length > 0) {
+              nextData.motherId = spouseIds[0];
+            }
           }
         }
       } else if (name === "motherId" && value) {
@@ -189,7 +192,10 @@ export default function Admin({
           nextData.generation = parent.generation + 1;
           // Auto-fill Father if Mother has spouse
           if (parent.spouseId) {
-            nextData.fatherId = parent.spouseId.toString();
+            const spouseIds = String(parent.spouseId).split(',').map(s => s.trim()).filter(Boolean);
+            if (spouseIds.length > 0) {
+              nextData.fatherId = spouseIds[0];
+            }
           }
         }
       } else if (name === "spouseId" && value) {
@@ -263,7 +269,7 @@ export default function Admin({
       generation: parseInt(formData.generation) || 1,
       fatherId: formData.fatherId ? parseInt(formData.fatherId) : null,
       motherId: formData.motherId ? parseInt(formData.motherId) : null,
-      spouseId: formData.spouseId ? parseInt(formData.spouseId) : null,
+      spouseId: formData.spouseId ? String(formData.spouseId).trim() : "",
       avatarY: formData.avatarY !== undefined ? parseInt(formData.avatarY) : 0
     };
 
@@ -684,21 +690,71 @@ export default function Admin({
                 </div>
                 <div>
                   <label className="text-xs font-bold text-wood-medium uppercase tracking-wider block mb-1">Vợ/Chồng</label>
-                  <select
-                    name="spouseId"
-                    value={formData.spouseId}
-                    onChange={handleInputChange}
-                    className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
-                  >
-                    <option value="">-- Độc thân / Chưa cập nhật --</option>
-                    {members
-                      .filter(m => m.id !== editId)
-                      .map(m => (
-                        <option key={m.id} value={m.id}>
-                          {m.name} (Đời {m.generation} - {m.gender})
-                        </option>
-                      ))}
-                  </select>
+                  {(() => {
+                    const spouseIds = formData.spouseId ? String(formData.spouseId).split(',').map(s => s.trim()).filter(Boolean) : [];
+                    return (
+                      <div className="space-y-2">
+                        {spouseIds.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 p-2 bg-paper-base/50 border border-gold-accent/15 rounded mb-2">
+                            {spouseIds.map(sid => {
+                              const spouse = members.find(m => m.id === (parseInt(sid) || sid));
+                              if (!spouse) return null;
+                              return (
+                                <span key={sid} className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-gold-accent/15 text-wood-dark border border-gold-accent/25 text-xs font-medium">
+                                  {spouse.name} (Đời {spouse.generation})
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newSpouseIds = spouseIds.filter(id => id !== sid);
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        spouseId: newSpouseIds.join(",")
+                                      }));
+                                    }}
+                                    className="text-red-700 hover:text-red-900 font-bold ml-0.5"
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
+                        <select
+                          value=""
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (!val) return;
+                            const newSpouseIds = [...spouseIds];
+                            if (!newSpouseIds.includes(val)) {
+                              newSpouseIds.push(val);
+                              const spouse = members.find(m => m.id === (parseInt(val) || val));
+                              setFormData(prev => {
+                                const next = {
+                                  ...prev,
+                                  spouseId: newSpouseIds.join(",")
+                                };
+                                if (spouse) {
+                                  next.generation = spouse.generation;
+                                }
+                                return next;
+                               });
+                            }
+                          }}
+                          className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
+                        >
+                          <option value="">-- Thêm Vợ/Chồng --</option>
+                          {members
+                            .filter(m => m.id !== editId && !spouseIds.includes(String(m.id)))
+                            .map(m => (
+                              <option key={m.id} value={m.id}>
+                                {m.name} (Đời {m.generation} - {m.gender})
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 

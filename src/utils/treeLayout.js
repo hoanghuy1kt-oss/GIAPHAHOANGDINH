@@ -115,8 +115,10 @@ export function calculateTreeLayout(members) {
     const node = memberMap[nodeId];
     if (!node) return 0;
 
-    const hasSpouse = node.spouseId && memberMap[node.spouseId];
-    const coupleWidth = hasSpouse ? (NODE_WIDTH * 2 + SPOUSE_GAP) : NODE_WIDTH;
+    const spouseIds = node.spouseId ? String(node.spouseId).split(',').map(s => s.trim()).filter(Boolean) : [];
+    const spouseNodes = spouseIds.map(id => memberMap[id]).filter(Boolean);
+    const totalCount = 1 + spouseNodes.length;
+    const coupleWidth = totalCount * NODE_WIDTH + (totalCount - 1) * SPOUSE_GAP;
 
     if (node.children.length === 0) {
       node.subtreeWidth = coupleWidth;
@@ -146,35 +148,49 @@ export function calculateTreeLayout(members) {
     const node = memberMap[nodeId];
     if (!node || positionedNodes[nodeId]) return;
 
-    const hasSpouse = node.spouseId && memberMap[node.spouseId];
+    const spouseIds = node.spouseId ? String(node.spouseId).split(',').map(s => s.trim()).filter(Boolean) : [];
+    const spouseNodes = spouseIds.map(id => memberMap[id]).filter(Boolean);
+    const hasSpouse = spouseNodes.length > 0;
     const currentY = yOffset + (currentGen - 1) * GENERATION_HEIGHT;
 
-    let husbandX, wifeX;
     if (hasSpouse) {
-      // Place husband on left, wife on right
-      const coupleWidth = NODE_WIDTH * 2 + SPOUSE_GAP;
-      husbandX = centerX - coupleWidth / 2 + NODE_WIDTH / 2;
-      wifeX = centerX + coupleWidth / 2 - NODE_WIDTH / 2;
+      // Order the couple: spouses on the left and right, with the main node in the middle
+      let orderedCouple = [];
+      if (spouseNodes.length === 1) {
+        if (node.gender === "Nữ") {
+          orderedCouple = [spouseNodes[0], node];
+        } else {
+          orderedCouple = [node, spouseNodes[0]];
+        }
+      } else {
+        const mid = Math.floor(spouseNodes.length / 2);
+        orderedCouple = [...spouseNodes.slice(0, mid), node, ...spouseNodes.slice(mid)];
+      }
 
-      positionedNodes[nodeId] = {
-        ...node,
-        x: husbandX - NODE_WIDTH / 2,
-        y: currentY
-      };
+      const totalCount = orderedCouple.length;
+      const coupleWidth = totalCount * NODE_WIDTH + (totalCount - 1) * SPOUSE_GAP;
 
-      const spouseNode = memberMap[node.spouseId];
-      positionedNodes[node.spouseId] = {
-        ...spouseNode,
-        x: wifeX - NODE_WIDTH / 2,
-        y: currentY
-      };
-
-      // Add spouse link (double line or gold line)
-      links.push({
-        type: "spouse",
-        from: { x: husbandX + NODE_WIDTH / 2, y: currentY + NODE_HEIGHT / 2 },
-        to: { x: wifeX - NODE_WIDTH / 2, y: currentY + NODE_HEIGHT / 2 }
+      // Position each node in the couple from left to right
+      let startX = centerX - coupleWidth / 2;
+      orderedCouple.forEach((cNode) => {
+        positionedNodes[cNode.id] = {
+          ...cNode,
+          x: startX,
+          y: currentY
+        };
+        startX += NODE_WIDTH + SPOUSE_GAP;
       });
+
+      // Add spouse links between adjacent nodes
+      for (let i = 0; i < orderedCouple.length - 1; i++) {
+        const leftNode = positionedNodes[orderedCouple[i].id];
+        const rightNode = positionedNodes[orderedCouple[i + 1].id];
+        links.push({
+          type: "spouse",
+          from: { x: leftNode.x + NODE_WIDTH, y: currentY + NODE_HEIGHT / 2 },
+          to: { x: rightNode.x, y: currentY + NODE_HEIGHT / 2 }
+        });
+      }
     } else {
       positionedNodes[nodeId] = {
         ...node,
@@ -215,10 +231,8 @@ export function calculateTreeLayout(members) {
         assignPositions(childId, childCenterX, currentGen + 1, yOffset);
 
         const childY = currentY + GENERATION_HEIGHT;
-        const childHasSpouse = child.spouseId && memberMap[child.spouseId];
-        const childJointX = childHasSpouse
-          ? (childCenterX - NODE_WIDTH / 2 - SPOUSE_GAP / 2)
-          : childCenterX;
+        const childNodePos = positionedNodes[childId];
+        const childJointX = childNodePos ? (childNodePos.x + NODE_WIDTH / 2) : childCenterX;
         const childJointY = childY;
 
         // Draw stem up from child

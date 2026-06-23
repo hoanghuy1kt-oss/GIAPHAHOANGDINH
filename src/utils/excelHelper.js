@@ -21,10 +21,13 @@ export function calculateGenerations(members) {
     
     // Set spouse's generation
     if (member.spouseId) {
-      const spouse = membersMap.get(member.spouseId);
-      if (spouse && spouse.generation !== gen) {
-        assignGen(spouse, gen);
-      }
+      const spouseIds = String(member.spouseId).split(',').map(s => s.trim()).filter(Boolean);
+      spouseIds.forEach(sid => {
+        const spouse = membersMap.get(parseInt(sid) || sid);
+        if (spouse && spouse.generation !== gen) {
+          assignGen(spouse, gen);
+        }
+      });
     }
 
     // Set children's generation
@@ -91,7 +94,7 @@ export const parseExcel = (file) => {
             parentId: parentId, // temporary placeholder
             fatherId: null,
             motherId: null,
-            spouseId: row["ID Vợ/Chồng"] ? parseInt(row["ID Vợ/Chồng"]) : null,
+            spouseId: row["ID Vợ/Chồng"] ? String(row["ID Vợ/Chồng"]).trim() : "",
             avatar: String(row["Liên kết Ảnh đại diện (URL)"] ?? "").trim(),
             childNo: String(row["Con thứ"] ?? "").trim()
           };
@@ -107,12 +110,18 @@ export const parseExcel = (file) => {
               if (parent.gender === "Nam") {
                 clean.fatherId = pId;
                 if (parent.spouseId) {
-                  clean.motherId = parent.spouseId;
+                  const spouseIds = String(parent.spouseId).split(',').map(s => s.trim()).filter(Boolean);
+                  if (spouseIds.length > 0) {
+                    clean.motherId = parseInt(spouseIds[0]) || spouseIds[0];
+                  }
                 }
               } else {
                 clean.motherId = pId;
                 if (parent.spouseId) {
-                  clean.fatherId = parent.spouseId;
+                  const spouseIds = String(parent.spouseId).split(',').map(s => s.trim()).filter(Boolean);
+                  if (spouseIds.length > 0) {
+                    clean.fatherId = parseInt(spouseIds[0]) || spouseIds[0];
+                  }
                 }
               }
             }

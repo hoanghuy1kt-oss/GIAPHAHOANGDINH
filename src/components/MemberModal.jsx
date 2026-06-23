@@ -10,7 +10,8 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
 
   const father  = member.fatherId  ? findMember(member.fatherId)  : null;
   const mother  = member.motherId  ? findMember(member.motherId)  : null;
-  const spouse  = member.spouseId  ? findMember(member.spouseId)  : null;
+  const spouseIds = member.spouseId ? String(member.spouseId).split(',').map(s => s.trim()).filter(Boolean) : [];
+  const spouses = spouseIds.map(id => findMember(parseInt(id) || id)).filter(Boolean);
   const children = allMembers.filter(m => m.fatherId === member.id || m.motherId === member.id);
 
   // ── Update-request states ──────────────────────────────────────
@@ -419,11 +420,22 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                 <RelativeCard label="Cha" person={father} onSelect={onSelectMember} />
                 <RelativeCard label="Mẹ" person={mother} onSelect={onSelectMember} />
               </div>
-              <RelativeCard
-                label={member.gender === "Nam" ? "Vợ / Phối ngẫu" : "Chồng / Phối ngẫu"}
-                person={spouse} onSelect={onSelectMember} full
-                icon={<Heart className="w-3.5 h-3.5 fill-gold-accent/20 text-gold-accent shrink-0" />}
-              />
+              {spouses.length > 0 ? (
+                spouses.map((sp, idx) => (
+                  <RelativeCard
+                    key={sp.id}
+                    label={`${member.gender === "Nam" ? "Vợ / Phối ngẫu" : "Chồng / Phối ngẫu"} ${spouses.length > 1 ? `(${idx + 1})` : ""}`}
+                    person={sp} onSelect={onSelectMember} full
+                    icon={<Heart className="w-3.5 h-3.5 fill-gold-accent/20 text-gold-accent shrink-0" />}
+                  />
+                ))
+              ) : (
+                <RelativeCard
+                  label={member.gender === "Nam" ? "Vợ / Phối ngẫu" : "Chồng / Phối ngẫu"}
+                  person={null} onSelect={onSelectMember} full
+                  icon={<Heart className="w-3.5 h-3.5 fill-gold-accent/20 text-gold-accent shrink-0" />}
+                />
+              )}
               <div className="p-3 rounded-lg bg-paper-light border border-gold-accent/15">
                 <span className="text-[11px] text-charcoal/45 block mb-2">Hậu duệ / Con cái ({children.length})</span>
                 {children.length > 0 ? (

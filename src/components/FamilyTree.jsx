@@ -401,7 +401,7 @@ export default function FamilyTree({
 
             {/* Left Control Panel / Search & Stats */}
             <div className={`absolute top-4 left-4 z-20 w-80 max-h-[90%] bg-paper-light/95 border border-gold-accent/30 rounded-lg shadow-xl p-4 flex flex-col gap-3.5 overflow-y-auto backdrop-blur-xs select-text transition-all duration-300 ${
-              isMobileTreeSidebarOpen ? "translate-x-0 opacity-100" : "max-md:-translate-x-[340px] max-md:opacity-0 pointer-events-none md:translate-x-0"
+              isMobileTreeSidebarOpen ? "translate-x-0 opacity-100" : "max-md:-translate-x-[340px] max-md:opacity-0 max-md:pointer-events-none md:translate-x-0"
             }`}>
               
               {/* Search Section Header (includes close button on mobile) */}
@@ -638,7 +638,7 @@ export default function FamilyTree({
                           {/* Image Section (Top) */}
                           <div className="w-full h-[110px] rounded-md overflow-hidden bg-paper-light border border-gold-accent/15 relative shrink-0">
                             {node.avatar ? (
-                              <img src={node.avatar} alt={node.name} className="w-full h-full object-cover" />
+                              <img src={node.avatar} alt={node.name} className="w-full h-full object-cover" style={{ objectPosition: `center ${node.avatarY ?? 0}%` }} />
                             ) : (
                               <div className={`w-full h-full flex flex-col items-center justify-center ${node.isDeceased ? 'bg-wood-medium/10' : 'bg-paper-base'}`}>
                                 <User className={`w-10 h-10 ${node.isDeceased ? 'text-gold-accent/40' : 'text-charcoal/20'}`} />
@@ -740,7 +740,7 @@ export default function FamilyTree({
             <div className="flex gap-3">
               <div className="w-20 h-20 rounded-lg overflow-hidden border border-gold-accent/30 bg-paper-light shrink-0">
                 {hoveredMember.avatar ? (
-                  <img src={hoveredMember.avatar} alt={hoveredMember.name} className="w-full h-full object-cover" />
+                  <img src={hoveredMember.avatar} alt={hoveredMember.name} className="w-full h-full object-cover" style={{ objectPosition: `center ${hoveredMember.avatarY ?? 0}%` }} />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-wood-medium/5">
                     <User className="w-8 h-8 text-gold-accent/40" />

@@ -31,6 +31,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
     burialPlace: member.burialPlace || "",
     biography: member.biography || "",
     avatar: member.avatar || "",
+    avatarY: member.avatarY ?? 0,
     childNo: member.childNo || ""
   });
 
@@ -47,6 +48,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
       burialPlace: member.burialPlace || "",
       biography: member.biography || "",
       avatar: member.avatar || "",
+      avatarY: member.avatarY ?? 0,
       childNo: member.childNo || "",
     });
     setSubmitted(false);
@@ -79,7 +81,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
       return;
     }
 
-    const editKeys = ["name", "birthDate", "deathDate", "isDeceased", "birthPlace", "livingPlace", "deathPlace", "burialPlace", "biography", "avatar", "childNo"];
+    const editKeys = ["name", "birthDate", "deathDate", "isDeceased", "birthPlace", "livingPlace", "deathPlace", "burialPlace", "biography", "avatar", "avatarY", "childNo"];
     const changes = {};
     const original = {};
 
@@ -149,7 +151,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
             {isEditing ? (
               updateFields.avatar ? (
                 <div className="w-12 h-12 rounded-full border-2 border-gold-accent shadow overflow-hidden bg-paper-light shrink-0">
-                  <img src={updateFields.avatar} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={updateFields.avatar} alt="Preview" className="w-full h-full object-cover" style={{ objectPosition: `center ${updateFields.avatarY ?? 0}%` }} />
                 </div>
               ) : (
                 <div className="w-10 h-10 rounded-full border border-gold-accent/40 bg-paper-light flex items-center justify-center shrink-0">
@@ -159,7 +161,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
             ) : (
               member.avatar ? (
                 <div className="w-12 h-12 rounded-full border-2 border-gold-accent shadow overflow-hidden bg-paper-light shrink-0">
-                  <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
+                  <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" style={{ objectPosition: `center ${member.avatarY ?? 0}%` }} />
                 </div>
               ) : (
                 <div className="w-10 h-10 rounded-full border border-gold-accent/40 bg-paper-light flex items-center justify-center shrink-0">
@@ -223,7 +225,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full border border-gold-accent/30 overflow-hidden bg-paper-base shrink-0 flex items-center justify-center">
                       {updateFields.avatar ? (
-                        <img src={updateFields.avatar} alt="Preview" className="w-full h-full object-cover" />
+                        <img src={updateFields.avatar} alt="Preview" className="w-full h-full object-cover" style={{ objectPosition: `center ${updateFields.avatarY ?? 0}%` }} />
                       ) : (
                         <User className="w-5 h-5 text-charcoal/30" />
                       )}
@@ -253,6 +255,22 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                       className="w-full text-xs border border-gold-accent/25 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
                     />
                   </div>
+                  {updateFields.avatar && (
+                    <div className="mt-2 bg-paper-base/50 p-2.5 rounded-lg border border-gold-accent/10">
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-[11px] font-semibold text-wood-dark">Căn dọc ảnh: {updateFields.avatarY ?? 0}%</label>
+                        <span className="text-[9px] text-charcoal/50">(Kéo để chỉnh đầu ảnh lên/xuống)</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={updateFields.avatarY ?? 0}
+                        onChange={e => handleFieldChange("avatarY", parseInt(e.target.value))}
+                        className="w-full h-1 bg-gold-accent/20 rounded-lg appearance-none cursor-pointer accent-gold-accent"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 border-t border-gold-accent/10 pt-3">

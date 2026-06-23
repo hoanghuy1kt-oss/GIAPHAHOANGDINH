@@ -124,6 +124,7 @@ export default function Admin({
     burialPlace: "Nơi an táng",
     biography: "Tiểu sử & Sự nghiệp",
     avatar: "Ảnh đại diện",
+    avatarY: "Căn dọc ảnh (%)",
     childNo: "Con thứ"
   };
 
@@ -146,6 +147,7 @@ export default function Admin({
     spouseId: "",
     biography: "",
     avatar: "",
+    avatarY: 0,
     livingPlace: "",
     deathPlace: "",
     childNo: ""
@@ -218,6 +220,7 @@ export default function Admin({
       spouseId: "",
       biography: "",
       avatar: "",
+      avatarY: 0,
       livingPlace: "",
       deathPlace: "",
       childNo: ""
@@ -241,6 +244,7 @@ export default function Admin({
       spouseId: member.spouseId || "",
       biography: member.biography || "",
       avatar: member.avatar || "",
+      avatarY: member.avatarY ?? 0,
       livingPlace: member.livingPlace || "",
       deathPlace: member.deathPlace || "",
       childNo: member.childNo || ""
@@ -259,7 +263,8 @@ export default function Admin({
       generation: parseInt(formData.generation) || 1,
       fatherId: formData.fatherId ? parseInt(formData.fatherId) : null,
       motherId: formData.motherId ? parseInt(formData.motherId) : null,
-      spouseId: formData.spouseId ? parseInt(formData.spouseId) : null
+      spouseId: formData.spouseId ? parseInt(formData.spouseId) : null,
+      avatarY: formData.avatarY !== undefined ? parseInt(formData.avatarY) : 0
     };
 
     if (editId) {
@@ -409,7 +414,7 @@ export default function Admin({
                 <div className="shrink-0">
                   {formData.avatar ? (
                     <div className="w-16 h-16 rounded-full border-2 border-gold-accent overflow-hidden bg-paper-light shadow-sm">
-                      <img src={formData.avatar} alt="Preview" className="w-full h-full object-cover" />
+                      <img src={formData.avatar} alt="Preview" className="w-full h-full object-cover" style={{ objectPosition: `center ${formData.avatarY ?? 0}%` }} />
                     </div>
                   ) : (
                     <div className="w-16 h-16 rounded-full border border-gold-accent/20 bg-paper-light flex items-center justify-center shadow-sm">
@@ -461,6 +466,23 @@ export default function Admin({
                       </button>
                     )}
                   </div>
+                  {formData.avatar && (
+                    <div className="bg-paper-light/50 p-2 rounded border border-gold-accent/10 mt-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-[11px] font-semibold text-wood-dark">Căn dọc ảnh: {formData.avatarY ?? 0}%</label>
+                        <span className="text-[9px] text-charcoal/50">(Kéo để chỉnh đầu ảnh lên/xuống)</span>
+                      </div>
+                      <input
+                        type="range"
+                        name="avatarY"
+                        min="0"
+                        max="100"
+                        value={formData.avatarY ?? 0}
+                        onChange={e => setFormData(prev => ({ ...prev, avatarY: parseInt(e.target.value) }))}
+                        className="w-full h-1 bg-gold-accent/20 rounded-lg appearance-none cursor-pointer accent-gold-accent"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 

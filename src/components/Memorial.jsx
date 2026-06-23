@@ -403,6 +403,21 @@ export default function Memorial({
     return `${dStr}/${mStr}/${target.getFullYear()}`;
   };
 
+  const getDaysRemaining = (e) => {
+    const { day, month } = e.annDate;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let solarYear = today.getFullYear();
+    let target = getSolarDateOfLunar(solarYear, month, day);
+    const targetZero = new Date(target);
+    targetZero.setHours(0, 0, 0, 0);
+    if (targetZero < today) {
+      target = getSolarDateOfLunar(solarYear + 1, month, day);
+    }
+    const diffTime = target.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
   const individualEvents = members.filter(m => m.isDeceased).map(m => {
     const annDate = getAnniversaryDate(m);
     if (!annDate) return null;
@@ -424,17 +439,15 @@ export default function Memorial({
     id: "hopky",
     name: "Giỗ Hợp Kỵ (Giỗ chung)",
     annDate: { day: 18, month: 9 },
-    desc: `Giỗ tập thể cho ${hopKyMembers.length} tiên tổ không rõ ngày mất`,
+    desc: `Giỗ tập thể cho các tiên tổ không rõ ngày mất`,
     isHopKy: true,
     members: hopKyMembers
   }] : [];
 
-  const allEvents = [...individualEvents, ...hopKyEvent].sort((a, b) => {
-    if (a.annDate.month !== b.annDate.month) {
-      return a.annDate.month - b.annDate.month;
-    }
-    return a.annDate.day - b.annDate.day;
-  });
+  const allEvents = [...individualEvents, ...hopKyEvent].map(e => ({
+    ...e,
+    daysRemaining: getDaysRemaining(e)
+  })).sort((a, b) => a.daysRemaining - b.daysRemaining);
 
   return (
     <div
@@ -673,19 +686,7 @@ export default function Memorial({
                   </div>
                   <div className="flex-grow min-w-0">
                     <h4 className="font-display font-semibold text-sm text-wood-dark">{e.name}</h4>
-                    <p className="text-[11px] text-charcoal/60 mt-0.5">{e.desc}</p>
                     <p className="text-[10px] text-wood-medium/80 mt-0.5 font-medium">Dương lịch tiếp theo: {solarDateStr}</p>
-                    
-                    {e.isHopKy && (
-                      <div className="mt-2 text-[10px] text-charcoal/70 bg-gold-accent/5 p-2 rounded border border-gold-accent/10 max-h-[120px] overflow-y-auto max-w-xl">
-                        <span className="font-semibold block mb-1">Danh sách tiên tổ quy kỵ ngày này:</span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1">
-                          {e.members.map(m => (
-                            <span key={m.id} className="truncate">• {m.name} (Đời {m.generation})</span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
                 <button

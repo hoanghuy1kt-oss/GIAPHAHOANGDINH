@@ -19,19 +19,47 @@ export function calculateTreeLayout(members) {
     memberMap[m.id] = { ...m, children: [] };
   });
 
-  // 2. Build children relationships (patrilineal)
+  // 2. Build children relationships
   const rootIds = [];
+
+  // Helper to check if a member has parents in the tree
+  const isDescendant = (id) => {
+    const m = memberMap[id];
+    return m && (
+      (m.fatherId && memberMap[m.fatherId]) ||
+      (m.motherId && memberMap[m.motherId])
+    );
+  };
+
   Object.values(memberMap).forEach(m => {
-    if (m.fatherId && memberMap[m.fatherId]) {
+    const hasFather = m.fatherId && memberMap[m.fatherId];
+    const hasMother = m.motherId && memberMap[m.motherId];
+
+    if (hasFather && hasMother) {
+      const fatherIsDesc = isDescendant(m.fatherId);
+      const motherIsDesc = isDescendant(m.motherId);
+      
+      // If mother is a blood descendant and father is not, attach to mother
+      if (motherIsDesc && !fatherIsDesc) {
+        memberMap[m.motherId].children.push(m.id);
+      } else {
+        memberMap[m.fatherId].children.push(m.id);
+      }
+    } else if (hasFather) {
       memberMap[m.fatherId].children.push(m.id);
-    } else if (m.motherId && memberMap[m.motherId]) {
-      // Fallback to mother if no father
+    } else if (hasMother) {
       memberMap[m.motherId].children.push(m.id);
     } else {
-      // If a member is a wife and has a spouse who is in the tree,
-      // she is not a root anchor (her husband is the anchor).
-      const isWifeWithSpouse = m.gender === "Nữ" && m.spouseId && memberMap[m.spouseId];
-      if (!isWifeWithSpouse) {
+      // Root check: A member with no parents in the tree is a root only if:
+      // - They have no spouse in the tree, OR
+      // - Their spouse has no parents in the tree either (both are roots of a tree, e.g. generation 1), and they are male.
+      const hasSpouse = m.spouseId && memberMap[m.spouseId];
+      if (hasSpouse) {
+        const spouseIsDesc = isDescendant(m.spouseId);
+        if (!spouseIsDesc && m.gender === "Nam") {
+          rootIds.push(m.id);
+        }
+      } else {
         rootIds.push(m.id);
       }
     }

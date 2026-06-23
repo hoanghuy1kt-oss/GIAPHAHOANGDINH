@@ -175,6 +175,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                     value={updateFields.name}
                     onChange={e => handleFieldChange("name", e.target.value)}
                     placeholder="Nhập họ tên..."
+                    autoComplete="off"
                     className="w-full text-base font-semibold text-wood-dark border border-gold-accent/30 rounded-lg px-2.5 py-1 bg-white focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
                   />
                 </div>
@@ -260,6 +261,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                       value={updateFields.birthDate}
                       onChange={e => handleFieldChange("birthDate", e.target.value)}
                       placeholder="VD: 1852 hoặc 20/10/1852"
+                      autoComplete="off"
                       className="w-full text-sm border border-gold-accent/30 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
                     />
                   </div>
@@ -282,6 +284,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                       onChange={e => handleFieldChange("deathDate", e.target.value)}
                       disabled={!updateFields.isDeceased}
                       placeholder={updateFields.isDeceased ? "VD: 1930 hoặc 15/08/1930" : "Còn sống..."}
+                      autoComplete="off"
                       className="w-full text-sm border border-gold-accent/30 rounded-lg px-2.5 py-1.5 bg-white disabled:bg-black/5 disabled:text-charcoal/40 focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
                     />
                   </div>
@@ -294,6 +297,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                     value={updateFields.birthPlace}
                     onChange={e => handleFieldChange("birthPlace", e.target.value)}
                     placeholder="VD: Hưng Nguyên, Nghệ An"
+                    autoComplete="off"
                     className="w-full text-sm border border-gold-accent/30 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
                   />
                 </div>
@@ -306,6 +310,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                       value={updateFields.livingPlace}
                       onChange={e => handleFieldChange("livingPlace", e.target.value)}
                       placeholder="VD: Hà Nội"
+                      autoComplete="off"
                       className="w-full text-sm border border-gold-accent/30 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
                     />
                   </div>
@@ -318,6 +323,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                         value={updateFields.deathPlace}
                         onChange={e => handleFieldChange("deathPlace", e.target.value)}
                         placeholder="VD: Nghệ An"
+                        autoComplete="off"
                         className="w-full text-sm border border-gold-accent/30 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
                       />
                     </div>
@@ -328,6 +334,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                         value={updateFields.burialPlace}
                         onChange={e => handleFieldChange("burialPlace", e.target.value)}
                         placeholder="VD: Nghĩa trang quê nhà"
+                        autoComplete="off"
                         className="w-full text-sm border border-gold-accent/30 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
                       />
                     </div>

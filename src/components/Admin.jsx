@@ -470,6 +470,7 @@ export default function Admin({
                     onChange={handleInputChange}
                     placeholder="VD: Hoàng Đình A"
                     required
+                    autoComplete="off"
                     className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
                   />
                 </div>
@@ -509,6 +510,7 @@ export default function Admin({
                     value={formData.birthDate}
                     onChange={handleInputChange}
                     placeholder="VD: 1912 hoặc 20/10/1912"
+                    autoComplete="off"
                     className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
                   />
                 </div>
@@ -536,6 +538,7 @@ export default function Admin({
                         value={formData.deathDate}
                         onChange={handleInputChange}
                         placeholder="VD: 1985 hoặc 15/08/1985"
+                        autoComplete="off"
                         className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
                       />
                     </>
@@ -552,6 +555,7 @@ export default function Admin({
                     value={formData.birthPlace}
                     onChange={handleInputChange}
                     placeholder="VD: Hưng Nguyên, Nghệ An"
+                    autoComplete="off"
                     className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
                   />
                 </div>
@@ -563,6 +567,7 @@ export default function Admin({
                     value={formData.livingPlace || ""}
                     onChange={handleInputChange}
                     placeholder="VD: TP Vinh, Nghệ An"
+                    autoComplete="off"
                     className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
                   />
                 </div>
@@ -576,6 +581,7 @@ export default function Admin({
                         value={formData.deathPlace || ""}
                         onChange={handleInputChange}
                         placeholder="Nơi tạ thế..."
+                        autoComplete="off"
                         className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
                       />
                     </>
@@ -593,6 +599,7 @@ export default function Admin({
                       value={formData.burialPlace}
                       onChange={handleInputChange}
                       placeholder="Nghĩa trang, Địa phương..."
+                      autoComplete="off"
                       className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
                     />
                   </div>

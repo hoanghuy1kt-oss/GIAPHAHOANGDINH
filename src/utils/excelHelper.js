@@ -21,7 +21,7 @@ export const parseExcel = (file) => {
         const rawTributes = tributeSheet ? XLSX.utils.sheet_to_json(tributeSheet) : [];
         
         // Map excel columns to member fields
-        const members = rawMembers.map((row) => ({
+        const parsedMembers = rawMembers.map((row) => ({
           id: parseInt(row["ID"]) || 0,
           name: String(row["Họ và Tên"] || "").trim(),
           gender: String(row["Giới tính"] || "Nam").trim(),
@@ -39,6 +39,23 @@ export const parseExcel = (file) => {
           spouseId: row["ID Vợ/Chồng"] ? parseInt(row["ID Vợ/Chồng"]) : null,
           avatar: String(row["Liên kết Ảnh đại diện (URL)"] ?? "").trim()
         })).filter(m => m.id > 0 && m.name !== "");
+
+        // Auto-resolve missing fatherId or motherId from spouse connections
+        const members = parsedMembers.map((m) => {
+          const clean = { ...m };
+          if (clean.fatherId && !clean.motherId) {
+            const father = parsedMembers.find(f => f.id === clean.fatherId);
+            if (father && father.spouseId) {
+              clean.motherId = father.spouseId;
+            }
+          } else if (clean.motherId && !clean.fatherId) {
+            const mother = parsedMembers.find(mo => mo.id === clean.motherId);
+            if (mother && mother.spouseId) {
+              clean.fatherId = mother.spouseId;
+            }
+          }
+          return clean;
+        });
 
         const tributes = rawTributes.map((row) => ({
           id: row["ID"] || `trib_${Date.now()}_${Math.floor(Math.random() * 10000)}`,

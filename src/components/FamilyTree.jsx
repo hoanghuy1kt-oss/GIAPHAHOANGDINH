@@ -767,8 +767,9 @@ function FanChartComponent({ members, onSelectMember, drawDividers }) {
     for (let i = 0; i < 7; i++) {
       const current = ancestors[i];
       if (current) {
-        ancestors[2 * i + 1] = current.fatherId ? findMember(current.fatherId) : null;
-        ancestors[2 * i + 2] = current.motherId ? findMember(current.motherId) : null;
+        // Mother's side (maternal) on the left (index 2*i + 1), Father's side (paternal) on the right (index 2*i + 2)
+        ancestors[2 * i + 1] = current.motherId ? findMember(current.motherId) : null;
+        ancestors[2 * i + 2] = current.fatherId ? findMember(current.fatherId) : null;
       }
     }
   }
@@ -1090,9 +1091,15 @@ function FanChartComponent({ members, onSelectMember, drawDividers }) {
               />
 
               {/* Labels at the bottom baseline (Precisely centered) */}
-              {depth >= 2 && <text x={CX - 75} y={CY + 30} className="text-[9px] font-bold text-charcoal/40" textAnchor="middle">Cha / Mẹ</text>}
-              {depth >= 3 && <text x={CX - 175} y={CY + 30} className="text-[9px] font-bold text-charcoal/40" textAnchor="middle">Ông / Bà</text>}
-              {depth >= 4 && <text x={CX - 280} y={CY + 30} className="text-[9px] font-bold text-charcoal/40" textAnchor="middle">Cụ Ông / Bà</text>}
+              {/* Left Side: Maternal (Bên Ngoại) */}
+              {depth >= 2 && <text x={CX - 75} y={CY + 30} className="text-[9px] font-bold text-charcoal/40" textAnchor="middle">Mẹ (Họ Ngoại)</text>}
+              {depth >= 3 && <text x={CX - 175} y={CY + 30} className="text-[9px] font-bold text-charcoal/40" textAnchor="middle">Ông / Bà Ngoại</text>}
+              {depth >= 4 && <text x={CX - 280} y={CY + 30} className="text-[9px] font-bold text-charcoal/40" textAnchor="middle">Cụ Bên Ngoại</text>}
+
+              {/* Right Side: Paternal (Bên Nội) */}
+              {depth >= 2 && <text x={CX + 75} y={CY + 30} className="text-[9px] font-bold text-charcoal/40" textAnchor="middle">Cha (Họ Nội)</text>}
+              {depth >= 3 && <text x={CX + 175} y={CY + 30} className="text-[9px] font-bold text-charcoal/40" textAnchor="middle">Ông / Bà Nội</text>}
+              {depth >= 4 && <text x={CX + 280} y={CY + 30} className="text-[9px] font-bold text-charcoal/40" textAnchor="middle">Cụ Bên Nội</text>}
 
               {/* Draw nodes */}
               {ancestors.map((m, idx) => {

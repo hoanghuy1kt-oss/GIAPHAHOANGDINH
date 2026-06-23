@@ -168,16 +168,24 @@ export default function Admin({
         [name]: type === "checkbox" ? checked : value
       };
 
-      // Auto-calculate generation if parent or spouse is selected
+      // Auto-calculate generation and link other parent if parent or spouse is selected
       if (name === "fatherId" && value) {
         const parent = members.find(m => m.id === parseInt(value));
         if (parent) {
           nextData.generation = parent.generation + 1;
+          // Auto-fill Mother if Father has spouse
+          if (parent.spouseId) {
+            nextData.motherId = parent.spouseId.toString();
+          }
         }
       } else if (name === "motherId" && value) {
         const parent = members.find(m => m.id === parseInt(value));
         if (parent) {
           nextData.generation = parent.generation + 1;
+          // Auto-fill Father if Mother has spouse
+          if (parent.spouseId) {
+            nextData.fatherId = parent.spouseId.toString();
+          }
         }
       } else if (name === "spouseId" && value) {
         const spouse = members.find(m => m.id === parseInt(value));

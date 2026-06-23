@@ -32,6 +32,8 @@ export default function FamilyTree({
   const [scale, setScale] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [hoveredMember, setHoveredMember] = useState(null);
+  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
 
   const treeStateRef = useRef({ pan: { x: 100, y: 50 }, scale: 1 });
   useEffect(() => {
@@ -92,6 +94,7 @@ export default function FamilyTree({
     if (e.button !== 0) return;
     setIsDragging(true);
     setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+    setHoveredMember(null);
   };
 
   const handleMouseMove = (e) => {
@@ -221,6 +224,7 @@ export default function FamilyTree({
 
     const handleWheel = (e) => {
       e.preventDefault();
+      setHoveredMember(null);
       
       const zoomIntensity = 0.04;
       const delta = -e.deltaY;
@@ -608,6 +612,16 @@ export default function FamilyTree({
                       >
                         <div
                           onClick={() => onSelectMember(node)}
+                          onMouseEnter={(e) => {
+                            if (window.innerWidth <= 768) return;
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setHoverPosition({
+                              x: rect.left + rect.width / 2,
+                              y: rect.top - 10
+                            });
+                            setHoveredMember(node);
+                          }}
+                          onMouseLeave={() => setHoveredMember(null)}
                           className={`w-[140px] h-[185px] rounded-lg border-2 p-[4px] flex flex-col justify-between cursor-pointer select-none transition-all duration-300 bg-[#FAF7F0] ${
                             isSelected
                               ? "border-gold-accent ring-4 ring-gold-accent/30 scale-105 shadow-xl animate-bounce"
@@ -697,6 +711,76 @@ export default function FamilyTree({
         )}
 
       </div>
+
+      {/* Hover Popup Tooltip for Desktop */}
+      {hoveredMember && (
+        <div 
+          className="fixed z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full flex flex-col items-center animate-fade-in"
+          style={{
+            left: `${hoverPosition.x}px`,
+            top: `${hoverPosition.y}px`,
+          }}
+        >
+          <div className="bg-[#FAF7F0] border-2 border-gold-accent rounded-xl shadow-2xl p-4 w-72 flex flex-col gap-3 text-sans relative overflow-hidden select-none border-t-4 border-t-wood-dark">
+            <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-gold-accent/40"></div>
+            <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-gold-accent/40"></div>
+
+            <div className="flex gap-3">
+              <div className="w-20 h-20 rounded-lg overflow-hidden border border-gold-accent/30 bg-paper-light shrink-0">
+                {hoveredMember.avatar ? (
+                  <img src={hoveredMember.avatar} alt={hoveredMember.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-wood-medium/5">
+                    <User className="w-8 h-8 text-gold-accent/40" />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex-grow flex flex-col justify-center min-w-0">
+                <h4 className="font-display font-bold text-sm text-wood-dark leading-snug truncate">{hoveredMember.name}</h4>
+                <p className="text-[10px] text-gold-accent font-semibold uppercase mt-0.5">
+                  {hoveredMember.generation === 1
+                    ? (hoveredMember.gender === "Nam" ? "Thủy Tổ" : "Thủy Tổ Mẫu")
+                    : `Thế hệ thứ ${hoveredMember.generation}`}
+                </p>
+                <p className="text-[10px] text-charcoal/60 mt-0.5 font-medium">
+                  Giới tính: {hoveredMember.gender}
+                </p>
+                <p className="text-[10px] font-semibold text-wood-medium mt-0.5">
+                  {hoveredMember.birthDate || "???"} - {hoveredMember.isDeceased ? (hoveredMember.deathDate || "???") : "Nay"}
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t border-gold-accent/10 pt-2 text-[10px] text-charcoal/80 space-y-1">
+              {hoveredMember.birthPlace && (
+                <p className="truncate">
+                  <span className="font-bold text-wood-medium">Quê quán:</span> {hoveredMember.birthPlace}
+                </p>
+              )}
+              {hoveredMember.isDeceased ? (
+                hoveredMember.burialPlace && (
+                  <p className="truncate">
+                    <span className="font-bold text-wood-medium">Mộ phần:</span> {hoveredMember.burialPlace}
+                  </p>
+                )
+              ) : (
+                hoveredMember.livingPlace && (
+                  <p className="truncate">
+                    <span className="font-bold text-wood-medium">Nơi sống:</span> {hoveredMember.livingPlace}
+                  </p>
+                )
+              )}
+              {hoveredMember.biography && (
+                <p className="line-clamp-2 text-charcoal/70 italic mt-1 border-l-2 border-gold-accent/30 pl-1.5 leading-relaxed">
+                  "{hoveredMember.biography}"
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="w-3 h-3 bg-[#FAF7F0] border-r-2 border-b-2 border-gold-accent rotate-45 -mt-1.5 shadow-md"></div>
+        </div>
+      )}
     </div>
   );
 }

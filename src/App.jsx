@@ -98,7 +98,7 @@ function AppInner() {
       setMembers(updated);
     } catch (err) {
       console.error("Lỗi khi thêm thành viên:", err);
-      alert("Đã xảy ra lỗi khi thêm thành viên lên Firestore.");
+      alert("Đã xảy ra lỗi khi thêm thành viên lên Firestore:\nChi tiết: " + (err.message || err.toString()));
     }
   };
 
@@ -139,7 +139,7 @@ function AppInner() {
       }
     } catch (err) {
       console.error("Lỗi khi cập nhật thông tin thành viên:", err);
-      alert("Đã xảy ra lỗi khi cập nhật thông tin thành viên lên Firestore.");
+      alert("Đã xảy ra lỗi khi cập nhật thông tin thành viên lên Firestore:\nChi tiết: " + (err.message || err.toString()));
     }
   };
 
@@ -182,7 +182,7 @@ function AppInner() {
       }
     } catch (err) {
       console.error("Lỗi khi xóa thành viên:", err);
-      alert("Đã xảy ra lỗi khi xóa thành viên khỏi Firestore.");
+      alert("Đã xảy ra lỗi khi xóa thành viên khỏi Firestore:\nChi tiết: " + (err.message || err.toString()));
     }
   };
 
@@ -193,7 +193,7 @@ function AppInner() {
       setTributes([newTribute, ...tributes]);
     } catch (err) {
       console.error("Lỗi khi thêm lời tri ân:", err);
-      alert("Đã xảy ra lỗi khi lưu lời tri ân lên Firestore.");
+      alert("Đã xảy ra lỗi khi lưu lời tri ân lên Firestore:\nChi tiết: " + (err.message || err.toString()));
     }
   };
 
@@ -207,7 +207,7 @@ function AppInner() {
       }
     } catch (err) {
       console.error("Lỗi khi reset/xóa dữ liệu:", err);
-      alert("Đã xảy ra lỗi khi xóa dữ liệu trên Firestore.");
+      alert("Đã xảy ra lỗi khi xóa dữ liệu trên Firestore:\nChi tiết: " + (err.message || err.toString()));
     }
   };
 
@@ -239,7 +239,7 @@ function AppInner() {
       return true;
     } catch (err) {
       console.error("Lỗi khi nhập dữ liệu Excel:", err);
-      alert("Đã xảy ra lỗi khi lưu dữ liệu nhập Excel lên Firestore.");
+      alert("Đã xảy ra lỗi khi lưu dữ liệu nhập Excel lên Firestore:\nChi tiết: " + (err.message || err.toString()));
       return false;
     }
   };

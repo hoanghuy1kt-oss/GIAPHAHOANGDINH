@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { 
-  getFirestore, 
+  initializeFirestore, 
   collection, 
   getDocs, 
   doc, 
@@ -22,7 +22,9 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+export const db = initializeFirestore(app, {
+  ignoreUndefinedProperties: true
+});
 
 // Helper to fetch all documents from a collection
 export async function getCollectionData(collectionName) {

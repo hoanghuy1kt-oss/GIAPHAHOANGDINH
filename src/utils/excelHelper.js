@@ -21,39 +21,53 @@ export const parseExcel = (file) => {
         const rawTributes = tributeSheet ? XLSX.utils.sheet_to_json(tributeSheet) : [];
         
         // Map excel columns to member fields
-        const parsedMembers = rawMembers.map((row) => ({
-          id: parseInt(row["ID"]) || 0,
-          name: String(row["Họ và Tên"] || "").trim(),
-          gender: String(row["Giới tính"] || "Nam").trim(),
-          generation: parseInt(row["Thế hệ (Đời)"]) || 1,
-          birthDate: String(row["Năm sinh"] ?? "").trim(),
-          deathDate: String(row["Năm mất"] ?? "").trim(),
-          isDeceased: String(row["Đã mất"] || "").trim() === "Đúng" || row["Đã mất"] === true,
-          birthPlace: String(row["Nơi sinh"] ?? "").trim(),
-          livingPlace: String(row["Nơi sống"] ?? "").trim(),
-          deathPlace: String(row["Nơi mất"] ?? "").trim(),
-          burialPlace: String(row["Nơi an táng"] ?? "").trim(),
-          biography: String(row["Tiểu sử & Sự nghiệp"] ?? "").trim(),
-          fatherId: row["ID Cha"] ? parseInt(row["ID Cha"]) : null,
-          motherId: row["ID Mẹ"] ? parseInt(row["ID Mẹ"]) : null,
-          spouseId: row["ID Vợ/Chồng"] ? parseInt(row["ID Vợ/Chồng"]) : null,
-          avatar: String(row["Liên kết Ảnh đại diện (URL)"] ?? "").trim()
-        })).filter(m => m.id > 0 && m.name !== "");
+        const parsedMembers = rawMembers.map((row) => {
+          // Read parentId from "ID Cha/Mẹ", or fall back to "ID Cha" or "ID Mẹ" for compatibility
+          const parentIdVal = row["ID Cha/Mẹ"] ?? row["ID Cha"] ?? row["ID Mẹ"] ?? null;
+          const parentId = parentIdVal ? parseInt(parentIdVal) : null;
 
-        // Auto-resolve missing fatherId or motherId from spouse connections
+          return {
+            id: parseInt(row["ID"]) || 0,
+            name: String(row["Họ và Tên"] || "").trim(),
+            gender: String(row["Giới tính"] || "Nam").trim(),
+            generation: parseInt(row["Thế hệ (Đời)"]) || 1,
+            birthDate: String(row["Năm sinh"] ?? "").trim(),
+            deathDate: String(row["Năm mất"] ?? "").trim(),
+            isDeceased: String(row["Đã mất"] || "").trim() === "Đúng" || row["Đã mất"] === true,
+            birthPlace: String(row["Nơi sinh"] ?? "").trim(),
+            livingPlace: String(row["Nơi sống"] ?? "").trim(),
+            deathPlace: String(row["Nơi mất"] ?? "").trim(),
+            burialPlace: String(row["Nơi an táng"] ?? "").trim(),
+            biography: String(row["Tiểu sử & Sự nghiệp"] ?? "").trim(),
+            parentId: parentId, // temporary placeholder
+            fatherId: null,
+            motherId: null,
+            spouseId: row["ID Vợ/Chồng"] ? parseInt(row["ID Vợ/Chồng"]) : null,
+            avatar: String(row["Liên kết Ảnh đại diện (URL)"] ?? "").trim()
+          };
+        }).filter(m => m.id > 0 && m.name !== "");
+
+        // Auto-resolve fatherId and motherId based on parentId and spouse connections
         const members = parsedMembers.map((m) => {
           const clean = { ...m };
-          if (clean.fatherId && !clean.motherId) {
-            const father = parsedMembers.find(f => f.id === clean.fatherId);
-            if (father && father.spouseId) {
-              clean.motherId = father.spouseId;
-            }
-          } else if (clean.motherId && !clean.fatherId) {
-            const mother = parsedMembers.find(mo => mo.id === clean.motherId);
-            if (mother && mother.spouseId) {
-              clean.fatherId = mother.spouseId;
+          const pId = m.parentId;
+          if (pId) {
+            const parent = parsedMembers.find(p => p.id === pId);
+            if (parent) {
+              if (parent.gender === "Nam") {
+                clean.fatherId = pId;
+                if (parent.spouseId) {
+                  clean.motherId = parent.spouseId;
+                }
+              } else {
+                clean.motherId = pId;
+                if (parent.spouseId) {
+                  clean.fatherId = parent.spouseId;
+                }
+              }
             }
           }
+          delete clean.parentId;
           return clean;
         });
 
@@ -77,7 +91,7 @@ export const parseExcel = (file) => {
 };
 
 export const exportToExcel = (members, tributes = []) => {
-  // Map members to Excel structure
+  // Map members to Excel structure with a single "ID Cha/Mẹ" column
   const memberRows = members.map((m) => ({
     "ID": m.id,
     "Họ và Tên": m.name,
@@ -91,8 +105,7 @@ export const exportToExcel = (members, tributes = []) => {
     "Nơi mất": m.deathPlace || "",
     "Nơi an táng": m.burialPlace || "",
     "Tiểu sử & Sự nghiệp": m.biography || "",
-    "ID Cha": m.fatherId || "",
-    "ID Mẹ": m.motherId || "",
+    "ID Cha/Mẹ": m.fatherId || m.motherId || "", // Save whichever parent ID is available
     "ID Vợ/Chồng": m.spouseId || "",
     "Liên kết Ảnh đại diện (URL)": m.avatar && m.avatar.startsWith("data:") ? "" : (m.avatar || "") // Skip base64 to avoid Excel character limit crash
   }));
@@ -131,8 +144,7 @@ export const downloadExcelTemplate = () => {
       "Nơi mất": "Hưng Nguyên, Nghệ An",
       "Nơi an táng": "Nghĩa trang Dòng họ Hoàng Đình, Hưng Nguyên, Nghệ An",
       "Tiểu sử & Sự nghiệp": "Cụ tổ dòng họ (Thủy Tổ) họ Hoàng Đình Nghệ An. Đỗ Tú tài khoa Quý Mão dưới triều Nguyễn, mở lớp dạy học, bốc thuốc cứu người.",
-      "ID Cha": "",
-      "ID Mẹ": "",
+      "ID Cha/Mẹ": "",
       "ID Vợ/Chồng": 2,
       "Liên kết Ảnh đại diện (URL)": ""
     },
@@ -149,8 +161,7 @@ export const downloadExcelTemplate = () => {
       "Nơi mất": "Hưng Nguyên, Nghệ An",
       "Nơi an táng": "Nghĩa trang Dòng họ Hoàng Đình, Hưng Nguyên, Nghệ An",
       "Tiểu sử & Sự nghiệp": "Thủy Tổ Mẫu họ Hoàng Đình. Cụ bà hiền hậu đức độ, tần tảo chăm lo gia đình dòng họ.",
-      "ID Cha": "",
-      "ID Mẹ": "",
+      "ID Cha/Mẹ": "",
       "ID Vợ/Chồng": 1,
       "Liên kết Ảnh đại diện (URL)": ""
     }

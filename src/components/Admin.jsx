@@ -115,8 +115,8 @@ export default function Admin({
 
   const FIELD_LABELS = {
     name: "Họ và Tên",
-    birthDate: "Năm sinh",
-    deathDate: "Năm mất",
+    birthDate: "Ngày/Năm sinh",
+    deathDate: "Ngày/Năm mất",
     isDeceased: "Trạng thái sống/mất",
     birthPlace: "Nơi sinh",
     livingPlace: "Nơi sống",
@@ -502,13 +502,13 @@ export default function Admin({
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-wood-medium uppercase tracking-wider block mb-1">Năm sinh</label>
+                  <label className="text-xs font-bold text-wood-medium uppercase tracking-wider block mb-1">Ngày/Năm sinh</label>
                   <input
                     type="text"
                     name="birthDate"
                     value={formData.birthDate}
                     onChange={handleInputChange}
-                    placeholder="VD: 1912"
+                    placeholder="VD: 1912 hoặc 20/10/1912"
                     className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
                   />
                 </div>
@@ -529,13 +529,13 @@ export default function Admin({
                 <div>
                   {formData.isDeceased && (
                     <>
-                      <label className="text-xs font-bold text-wood-medium uppercase tracking-wider block mb-1">Năm mất</label>
+                      <label className="text-xs font-bold text-wood-medium uppercase tracking-wider block mb-1">Ngày/Năm mất</label>
                       <input
                         type="text"
                         name="deathDate"
                         value={formData.deathDate}
                         onChange={handleInputChange}
-                        placeholder="VD: 1985"
+                        placeholder="VD: 1985 hoặc 15/08/1985"
                         className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
                       />
                     </>
@@ -718,7 +718,7 @@ export default function Admin({
                       <th className="px-4 py-2.5">Đời</th>
                       <th className="px-4 py-2.5">Họ và Tên</th>
                       <th className="px-4 py-2.5">Giới tính</th>
-                      <th className="px-4 py-2.5">Năm sinh-mất</th>
+                      <th className="px-4 py-2.5">Sinh - Mất</th>
                       <th className="px-4 py-2.5 text-right">Hành động</th>
                     </tr>
                   </thead>

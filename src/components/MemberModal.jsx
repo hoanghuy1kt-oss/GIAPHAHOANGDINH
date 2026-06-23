@@ -254,18 +254,18 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
 
                 <div className="grid grid-cols-2 gap-3 border-t border-gold-accent/10 pt-3">
                   <div>
-                    <label className="text-xs font-semibold text-wood-dark block mb-1">Năm sinh</label>
+                    <label className="text-xs font-semibold text-wood-dark block mb-1">Ngày/Năm sinh</label>
                     <input
                       type="text"
                       value={updateFields.birthDate}
                       onChange={e => handleFieldChange("birthDate", e.target.value)}
-                      placeholder="VD: 1852"
+                      placeholder="VD: 1852 hoặc 20/10/1852"
                       className="w-full text-sm border border-gold-accent/30 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
                     />
                   </div>
                   <div>
                     <div className="flex justify-between items-center mb-1">
-                      <label className="text-xs font-semibold text-wood-dark block">Năm mất</label>
+                      <label className="text-xs font-semibold text-wood-dark block">Ngày/Năm mất</label>
                       <label className="flex items-center gap-1 cursor-pointer select-none">
                         <input
                           type="checkbox"
@@ -281,7 +281,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                       value={updateFields.deathDate}
                       onChange={e => handleFieldChange("deathDate", e.target.value)}
                       disabled={!updateFields.isDeceased}
-                      placeholder={updateFields.isDeceased ? "VD: 1930" : "Còn sống..."}
+                      placeholder={updateFields.isDeceased ? "VD: 1930 hoặc 15/08/1930" : "Còn sống..."}
                       className="w-full text-sm border border-gold-accent/30 rounded-lg px-2.5 py-1.5 bg-white disabled:bg-black/5 disabled:text-charcoal/40 focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
                     />
                   </div>
@@ -336,7 +336,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
               </div>
             ) : (
               <div className="divide-y divide-gold-accent/10">
-                <InfoRow icon={<Calendar />} label="Năm sinh – Năm mất"
+                <InfoRow icon={<Calendar />} label="Sinh - Mất"
                   value={`${member.birthDate || "???"} – ${member.isDeceased ? (member.deathDate || "???") : "Nay"}`} />
                 <InfoRow icon={<MapPin />} label="Nơi sinh" value={member.birthPlace || "Chưa cập nhật"} />
                 {member.livingPlace && <InfoRow icon={<MapPin />} label="Nơi sống" value={member.livingPlace} />}

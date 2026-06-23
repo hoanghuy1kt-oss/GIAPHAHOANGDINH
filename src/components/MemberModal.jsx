@@ -269,7 +269,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                   </div>
                   <div>
                     <div className="flex justify-between items-center mb-1">
-                      <label className="text-xs font-semibold text-wood-dark block">Ngày/Năm mất</label>
+                      <label className="text-xs font-semibold text-wood-dark block">Ngày/Năm mất (Âm lịch)</label>
                       <label className="flex items-center gap-1 cursor-pointer select-none">
                         <input
                           type="checkbox"
@@ -285,7 +285,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                       value={updateFields.deathDate}
                       onChange={e => handleFieldChange("deathDate", e.target.value)}
                       disabled={!updateFields.isDeceased}
-                      placeholder={updateFields.isDeceased ? "VD: 1930 hoặc 15/08/1930" : "Còn sống..."}
+                      placeholder={updateFields.isDeceased ? "VD: 1930 hoặc 15/08/1930 (Âm lịch)" : "Còn sống..."}
                       autoComplete="off"
                       className="w-full text-sm border border-gold-accent/30 rounded-lg px-2.5 py-1.5 bg-white disabled:bg-black/5 disabled:text-charcoal/40 focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
                     />
@@ -359,7 +359,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
             ) : (
               <div className="divide-y divide-gold-accent/10">
                 <InfoRow icon={<Calendar />} label="Sinh - Mất"
-                  value={`${member.birthDate || "???"} – ${member.isDeceased ? (member.deathDate || "???") : "Nay"}`} />
+                  value={`${member.birthDate || "???"} – ${member.isDeceased ? `${member.deathDate || "???"} (Âm lịch)` : "Nay"}`} />
                 {member.childNo && <InfoRow icon={<User />} label="Con thứ" value={member.childNo} />}
                 <InfoRow icon={<MapPin />} label="Nơi sinh" value={member.birthPlace || "Chưa cập nhật"} />
                 {member.livingPlace && <InfoRow icon={<MapPin />} label="Nơi sống" value={member.livingPlace} />}

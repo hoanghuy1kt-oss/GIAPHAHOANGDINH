@@ -547,13 +547,13 @@ export default function Admin({
                 <div>
                   {formData.isDeceased && (
                     <>
-                      <label className="text-xs font-bold text-wood-medium uppercase tracking-wider block mb-1">Ngày/Năm mất</label>
+                      <label className="text-xs font-bold text-wood-medium uppercase tracking-wider block mb-1">Ngày/Năm mất (Âm lịch)</label>
                       <input
                         type="text"
                         name="deathDate"
                         value={formData.deathDate}
                         onChange={handleInputChange}
-                        placeholder="VD: 1985 hoặc 15/08/1985"
+                        placeholder="VD: 1985 hoặc 15/08/1985 (Âm lịch)"
                         autoComplete="off"
                         className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
                       />

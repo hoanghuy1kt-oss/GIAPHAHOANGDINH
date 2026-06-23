@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Search, ZoomIn, ZoomOut, Maximize2, Info, Users, Leaf, Download, Upload, User, Heart, Calendar, X } from "lucide-react";
 import { calculateTreeLayout } from "../utils/treeLayout";
+import { SolarDate, LunarDate } from "lunar-date-vn";
 
 export default function FamilyTree({
   members,
@@ -676,7 +677,7 @@ export default function FamilyTree({
 
                             {/* Lifespan */}
                             <div className="text-[7.5px] opacity-60 mt-0.5 leading-none">
-                              {node.birthDate || "???"} - {node.isDeceased ? (node.deathDate || "???") : "Nay"}
+                              {node.birthDate || "???"} - {node.isDeceased ? `${node.deathDate || "???"} (Âm)` : "Nay"}
                             </div>
                           </div>
                         </div>
@@ -758,26 +759,26 @@ export default function FamilyTree({
                   Giới tính: {hoveredMember.gender}
                 </p>
                 <p className="text-[10px] font-semibold text-wood-medium mt-0.5">
-                  {hoveredMember.birthDate || "???"} - {hoveredMember.isDeceased ? (hoveredMember.deathDate || "???") : "Nay"}
+                  {hoveredMember.birthDate || "???"} - {hoveredMember.isDeceased ? `${hoveredMember.deathDate || "???"} (Âm lịch)` : "Nay"}
                 </p>
               </div>
             </div>
 
             <div className="border-t border-gold-accent/10 pt-2 text-[10px] text-charcoal/80 space-y-1">
               {hoveredMember.birthPlace && (
-                <p className="truncate">
+                <p className="break-words">
                   <span className="font-bold text-wood-medium">Quê quán:</span> {hoveredMember.birthPlace}
                 </p>
               )}
               {hoveredMember.isDeceased ? (
                 hoveredMember.burialPlace && (
-                  <p className="truncate">
+                  <p className="break-words">
                     <span className="font-bold text-wood-medium">Mộ phần:</span> {hoveredMember.burialPlace}
                   </p>
                 )
               ) : (
                 hoveredMember.livingPlace && (
-                  <p className="truncate">
+                  <p className="break-words">
                     <span className="font-bold text-wood-medium">Nơi sống:</span> {hoveredMember.livingPlace}
                   </p>
                 )
@@ -1252,7 +1253,7 @@ function FanChartComponent({ members, onSelectMember, drawDividers }) {
                           <>
                             <span className="text-[8.5px] font-bold leading-tight w-full px-0.5 break-words line-clamp-2">{m.name}</span>
                             <span className={`text-[7.2px] leading-none mt-0.5 ${m.isDeceased ? "text-paper-dark/75" : "text-charcoal/50"}`}>
-                              {m.birthDate || "???"} - {m.isDeceased ? (m.deathDate || "???") : "Nay"}
+                              {m.birthDate || "???"} - {m.isDeceased ? `${m.deathDate || "???"} (Âm)` : "Nay"}
                             </span>
                           </>
                         ) : (
@@ -1531,48 +1532,106 @@ function AnniversaryCalendarComponent({ members, onSelectMember }) {
       const day = parseInt(dateParts[0]);
       const month = parseInt(dateParts[1]);
       if (!isNaN(day) && !isNaN(month) && day >= 1 && day <= 31 && month >= 1 && month <= 12) {
-        return { day, month, isMock: false };
+        return { day, month };
       }
     }
-
-    // Deterministic mock fallback so layout remains populated and beautiful
-    const day = (m.id * 7) % 28 + 1;
-    const month = (m.id % 12) + 1;
-    return { day, month, isMock: true };
+    return null;
   };
 
-  const deceasedMembers = members.filter(m => m.isDeceased).map(m => ({
-    ...m,
-    annDate: getAnniversaryDate(m)
-  })).filter(m => m.annDate !== null);
+  const individualEvents = members.filter(m => m.isDeceased).map(m => {
+    const annDate = getAnniversaryDate(m);
+    if (!annDate) return null;
+    return {
+      id: `indiv-${m.id}`,
+      name: m.name,
+      annDate,
+      generation: m.generation,
+      gender: m.gender,
+      deathDate: m.deathDate,
+      deathPlace: m.deathPlace,
+      birthDate: m.birthDate,
+      isHopKy: false,
+      member: m
+    };
+  }).filter(Boolean);
 
-  const totalAnniversaries = deceasedMembers.length;
+  const hopKyMembers = members.filter(m => m.isDeceased && getAnniversaryDate(m) === null);
+
+  const hopKyEvent = hopKyMembers.length > 0 ? [{
+    id: "hopky",
+    name: "Giỗ Hợp Kỵ (Giỗ chung)",
+    annDate: { day: 18, month: 9 },
+    generation: null,
+    isHopKy: true,
+    members: hopKyMembers
+  }] : [];
+
+  const allEvents = [...individualEvents, ...hopKyEvent];
+
+  const totalAnniversaries = allEvents.length;
   
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const getDaysRemaining = (m) => {
-    const { day, month } = m.annDate;
-    let annYear = today.getFullYear();
-    let target = new Date(annYear, month - 1, day);
-    if (target < today) {
-      target = new Date(annYear + 1, month - 1, day);
+  const getSolarDateOfLunar = (lunarYear, lunarMonth, lunarDay) => {
+    try {
+      const lunar = new LunarDate({ day: 1, month: 1, year: lunarYear });
+      lunar.setDate({ day: lunarDay, month: lunarMonth, year: lunarYear });
+      const solar = lunar.toSolarDate();
+      if (solar) {
+        return solar.toDate();
+      }
+    } catch (e) {
+      console.error("Error converting Lunar to Solar:", e);
+    }
+    return new Date(lunarYear, lunarMonth - 1, lunarDay);
+  };
+
+  const getUpcomingSolarDateStr = (e) => {
+    const { day, month } = e.annDate;
+    let solarYear = today.getFullYear();
+    let target = getSolarDateOfLunar(solarYear, month, day);
+    const targetZero = new Date(target);
+    targetZero.setHours(0, 0, 0, 0);
+    if (targetZero < today) {
+      target = getSolarDateOfLunar(solarYear + 1, month, day);
+    }
+    const dStr = String(target.getDate()).padStart(2, '0');
+    const mStr = String(target.getMonth() + 1).padStart(2, '0');
+    return `${dStr}/${mStr}/${target.getFullYear()}`;
+  };
+
+  const getDaysRemaining = (e) => {
+    const { day, month } = e.annDate;
+    let solarYear = today.getFullYear();
+    let target = getSolarDateOfLunar(solarYear, month, day);
+    const targetZero = new Date(target);
+    targetZero.setHours(0, 0, 0, 0);
+    if (targetZero < today) {
+      target = getSolarDateOfLunar(solarYear + 1, month, day);
     }
     const diffTime = target.getTime() - today.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  const membersWithDays = deceasedMembers.map(m => ({
-    ...m,
-    daysRemaining: getDaysRemaining(m)
+  const eventsWithDays = allEvents.map(e => ({
+    ...e,
+    daysRemaining: getDaysRemaining(e)
   })).sort((a, b) => a.daysRemaining - b.daysRemaining);
 
-  const upcoming7 = membersWithDays.filter(m => m.daysRemaining <= 7).length;
-  const upcoming30 = membersWithDays.filter(m => m.daysRemaining <= 30).length;
-  const thisMonthCount = deceasedMembers.filter(m => m.annDate.month === currentMonth + 1).length;
+  const upcoming7 = eventsWithDays.filter(e => e.daysRemaining <= 7).length;
+  const upcoming30 = eventsWithDays.filter(e => e.daysRemaining <= 30).length;
 
   const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay(); 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+  let thisMonthCount = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const solar = new SolarDate(new Date(currentYear, currentMonth, d));
+    const lunar = solar.toLunarDate();
+    const dayAnniversaries = allEvents.filter(e => e.annDate.day === lunar.day && e.annDate.month === lunar.month);
+    thisMonthCount += dayAnniversaries.length;
+  }
 
   const cells = [];
   for (let i = 0; i < firstDayIndex; i++) {
@@ -1596,9 +1655,13 @@ function AnniversaryCalendarComponent({ members, onSelectMember }) {
 
   const handleDayClick = (dayNum, dayAnniversaries) => {
     if (!dayNum || dayAnniversaries.length === 0) return;
+    const solar = new SolarDate(new Date(currentYear, currentMonth, dayNum));
+    const lunar = solar.toLunarDate();
     setSelectedDayData({
       day: dayNum,
       month: currentMonth + 1,
+      lunarDay: lunar.day,
+      lunarMonth: lunar.month,
       anniversaries: dayAnniversaries
     });
   };
@@ -1663,22 +1726,28 @@ function AnniversaryCalendarComponent({ members, onSelectMember }) {
           </h4>
           
           <div className="flex-grow overflow-y-auto divide-y divide-gold-accent/10 pr-1 md:pr-2 max-h-[350px] lg:max-h-none">
-            {membersWithDays.length === 0 ? (
+            {eventsWithDays.length === 0 ? (
               <p className="text-xs text-charcoal/45 italic text-center py-8">Không có dữ liệu ngày giỗ.</p>
             ) : (
-              membersWithDays.map(m => {
-                const isToday = m.daysRemaining === 0 || m.daysRemaining === 365;
+              eventsWithDays.map(e => {
+                const isToday = e.daysRemaining === 0 || e.daysRemaining === 365;
                 return (
-                  <div key={m.id} className="py-2 flex items-center justify-between hover:bg-gold-accent/5 px-2 rounded transition-colors">
+                  <div key={e.id} className="py-2 flex items-center justify-between hover:bg-gold-accent/5 px-2 rounded transition-colors">
                     <div>
-                      <button
-                        onClick={() => onSelectMember(m)}
-                        className="text-xs font-bold text-wood-dark hover:text-gold-accent transition-colors block text-left"
-                      >
-                        {m.name}
-                      </button>
+                      {e.isHopKy ? (
+                        <span className="text-xs font-bold text-wood-dark block text-left">
+                          {e.name}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => onSelectMember(e.member)}
+                          className="text-xs font-bold text-wood-dark hover:text-gold-accent transition-colors block text-left"
+                        >
+                          {e.name}
+                        </button>
+                      )}
                       <span className="text-[10px] text-charcoal/50">
-                        Ngày giỗ: {m.annDate.day}/{m.annDate.month} {m.annDate.isMock && "(ước tính)"} · Đời {m.generation}
+                        Ngày giỗ: {e.annDate.day}/{e.annDate.month} (Âm lịch) · Dương lịch: {getUpcomingSolarDateStr(e)} {e.generation && `· Đời ${e.generation}`}
                       </span>
                     </div>
                     <div>
@@ -1688,11 +1757,11 @@ function AnniversaryCalendarComponent({ members, onSelectMember }) {
                         </span>
                       ) : (
                         <span className={`px-2 py-0.5 rounded text-[9.5px] font-semibold ${
-                          m.daysRemaining <= 7
+                          e.daysRemaining <= 7
                             ? "bg-red-50 text-red-600 border border-red-200"
                             : "bg-paper-light text-wood-medium border border-gold-accent/20"
                         }`}>
-                          Còn {m.daysRemaining} ngày
+                          Còn {e.daysRemaining} ngày
                         </span>
                       )}
                     </div>
@@ -1747,9 +1816,17 @@ function AnniversaryCalendarComponent({ members, onSelectMember }) {
               {cells.map((d, index) => {
                 const isSelectedMonthToday = d && (new Date().getMonth() === currentMonth) && (new Date().getDate() === d) && (new Date().getFullYear() === currentYear);
                 
-                const dayAnniversaries = d 
-                  ? deceasedMembers.filter(m => m.annDate.day === d && m.annDate.month === currentMonth + 1)
-                  : [];
+                let dayAnniversaries = [];
+                let lunarText = "";
+                if (d) {
+                  const solar = new SolarDate(new Date(currentYear, currentMonth, d));
+                  const lunar = solar.toLunarDate();
+                  lunarText = lunar.day === 1 
+                    ? `01/${lunar.month.toString().padStart(2, '0')}${lunar.leap_month ? 'n' : ''}` 
+                    : lunar.day.toString().padStart(2, '0');
+                  
+                  dayAnniversaries = allEvents.filter(e => e.annDate.day === lunar.day && e.annDate.month === lunar.month);
+                }
 
                 return (
                   <div
@@ -1767,9 +1844,12 @@ function AnniversaryCalendarComponent({ members, onSelectMember }) {
                   >
                     {d ? (
                       <>
-                        <div className="flex justify-between items-center shrink-0">
+                        <div className="flex flex-col items-start shrink-0">
                           <span className={`text-[10px] font-semibold ${isSelectedMonthToday ? "text-gold-dark font-extrabold" : "text-charcoal/50"}`}>
                             {d}
+                          </span>
+                          <span className="text-[9px] text-charcoal/40 italic block leading-none mt-0.5">
+                            {lunarText}
                           </span>
                         </div>
                         {dayAnniversaries.length > 0 && (
@@ -1796,9 +1876,14 @@ function AnniversaryCalendarComponent({ members, onSelectMember }) {
           <div className="bg-[#FAF7F0] border border-gold-accent/30 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh] border-t-4 border-t-wood-dark">
             {/* Modal Header */}
             <div className="bg-wood-dark text-gold-accent px-4 py-3 flex items-center justify-between border-b border-gold-accent/20">
-              <h3 className="font-display font-bold text-sm flex items-center gap-1.5">
-                🕯️ Ngày giỗ {selectedDayData.day}/{selectedDayData.month}
-              </h3>
+              <div className="flex flex-col">
+                <h3 className="font-display font-bold text-sm flex items-center gap-1.5 leading-none">
+                  🕯️ Ngày giỗ: {selectedDayData.lunarDay}/{selectedDayData.lunarMonth} (Âm lịch)
+                </h3>
+                <span className="text-[10px] text-gold-light/80 mt-1">
+                  Dương lịch năm nay: {selectedDayData.day}/{selectedDayData.month}/{currentYear}
+                </span>
+              </div>
               <button
                 onClick={() => setSelectedDayData(null)}
                 className="p-1 text-gold-accent/70 hover:text-gold-light hover:bg-white/10 rounded-full transition-colors cursor-pointer"
@@ -1813,32 +1898,53 @@ function AnniversaryCalendarComponent({ members, onSelectMember }) {
                 Danh sách tiên tổ cúng giỗ vào ngày này:
               </p>
               
-              {selectedDayData.anniversaries.map(m => {
-                // Find death and birth years
-                const birthYear = m.birthDate ? (parseInt(m.birthDate.match(/\d{4}/)?.[0] || m.birthDate) || "???") : "???";
-                const deathYear = m.deathDate ? (parseInt(m.deathDate.match(/\d{4}/)?.[0] || m.deathDate) || "???") : "???";
-                const age = typeof birthYear === "number" && typeof deathYear === "number" ? (deathYear - birthYear) : null;
+              {selectedDayData.anniversaries.map(e => {
+                if (e.isHopKy) {
+                  return (
+                    <div key={e.id} className="py-3 flex flex-col gap-1.5 first:pt-1">
+                      <div>
+                        <h4 className="text-xs font-bold text-red-700">{e.name}</h4>
+                        <p className="text-[10.5px] text-charcoal/70 mt-1 font-semibold">
+                          Giỗ chung cho các tiên tổ không rõ ngày mất:
+                        </p>
+                        <div className="mt-2 pl-3 border-l-2 border-gold-accent/40 space-y-2 max-h-[220px] overflow-y-auto">
+                          {e.members.map(m => (
+                            <div key={m.id} className="text-[10px] text-charcoal">
+                              <span className="font-bold text-wood-dark block">{m.name}</span>
+                              <span className="text-[9px] text-charcoal/50">
+                                Đời thứ {m.generation} · {m.gender} {m.deathDate && `· Năm mất: ${m.deathDate}`}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                const birthYear = e.birthDate ? (parseInt(e.birthDate.match(/\d{4}/)?.[0] || e.birthDate) || "???") : "???";
+                const deathYear = e.deathDate ? (parseInt(e.deathDate.match(/\d{4}/)?.[0] || e.deathDate) || "???") : "???";
 
                 return (
-                  <div key={m.id} className="py-3 flex flex-col gap-1.5 first:pt-1">
+                  <div key={e.id} className="py-3 flex flex-col gap-1.5 first:pt-1">
                     <div>
-                      <h4 className="text-xs font-bold text-wood-dark">{m.name}</h4>
+                      <h4 className="text-xs font-bold text-wood-dark">{e.name}</h4>
                       <p className="text-[10px] text-charcoal/50">
-                        Đời thứ {m.generation} · {m.gender}
+                        Đời thứ {e.generation} · {e.gender}
                       </p>
                       <p className="text-[10px] text-wood-medium mt-0.5">
-                        Tạ thế năm: {m.deathDate || "Không rõ"} {m.annDate.isMock && "(ước tính)"}
+                        Tạ thế năm: {e.deathDate || "Không rõ"}
                       </p>
-                      {m.deathPlace && (
+                      {e.deathPlace && (
                         <p className="text-[9.5px] text-charcoal/60 italic">
-                          Nơi mất: {m.deathPlace}
+                          Nơi mất: {e.deathPlace}
                         </p>
                       )}
                     </div>
                     
                     <button
                       onClick={() => {
-                        onSelectMember(m);
+                        onSelectMember(e.member);
                         setSelectedDayData(null);
                       }}
                       className="w-full mt-1 py-1.5 bg-gold-accent/10 hover:bg-gold-accent/25 border border-gold-accent/30 hover:border-gold-accent text-wood-medium rounded-lg text-xs font-bold transition-all text-center cursor-pointer flex items-center justify-center gap-1"

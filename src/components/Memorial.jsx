@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Flame, Calendar } from "lucide-react";
+import { LunarDate, SolarDate } from "lunar-date-vn";
+
+const getSolarDateOfLunar = (lunarYear, lunarMonth, lunarDay) => {
+  try {
+    const lunar = new LunarDate({ day: 1, month: 1, year: lunarYear });
+    lunar.setDate({ day: lunarDay, month: lunarMonth, year: lunarYear });
+    const solar = lunar.toSolarDate();
+    if (solar) {
+      return solar.toDate();
+    }
+  } catch (e) {
+    console.error("Error converting Lunar to Solar in Memorial:", e);
+  }
+  return new Date(lunarYear, lunarMonth - 1, lunarDay);
+};
 
 const TOTAL_BURN_TIME = 20 * 60 * 1000; // 20 minutes in milliseconds
 
@@ -328,21 +343,28 @@ export default function Memorial({
     setActiveSticks([]);
   };
 
-  const handleAddToCalendar = (name, month, day, desc) => {
+  const handleAddToCalendar = (name, lunarMonth, lunarDay, desc) => {
     const currentYear = new Date().getFullYear();
-    const formattedMonth = String(month).padStart(2, '0');
-    const formattedDay = String(day).padStart(2, '0');
-    const nextDayVal = day + 1;
-    const formattedNextDay = String(nextDayVal).padStart(2, '0');
+    const target = getSolarDateOfLunar(currentYear, lunarMonth, lunarDay);
     
-    const startDate = `${currentYear}${formattedMonth}${formattedDay}`;
-    const endDate = `${currentYear}${formattedMonth}${formattedNextDay}`;
+    const formattedYear = target.getFullYear();
+    const formattedMonth = String(target.getMonth() + 1).padStart(2, '0');
+    const formattedDay = String(target.getDate()).padStart(2, '0');
+    
+    const targetNext = new Date(target);
+    targetNext.setDate(targetNext.getDate() + 1);
+    const formattedNextYear = targetNext.getFullYear();
+    const formattedNextMonth = String(targetNext.getMonth() + 1).padStart(2, '0');
+    const formattedNextDay = String(targetNext.getDate()).padStart(2, '0');
+    
+    const startDate = `${formattedYear}${formattedMonth}${formattedDay}`;
+    const endDate = `${formattedNextYear}${formattedNextMonth}${formattedNextDay}`;
     
     const title = encodeURIComponent(`Ngày Giỗ ${name}`);
-    const details = encodeURIComponent(`Ngày giỗ Hằng năm ${name} (${desc}). Tưởng nhớ tổ tiên Gia tộc Hoàng Đình.`);
+    const details = encodeURIComponent(`Ngày giỗ (Âm lịch: ${lunarDay}/${lunarMonth}) ${name} (${desc}). Tưởng nhớ tổ tiên Gia tộc Hoàng Đình.`);
     const dates = `${startDate}/${endDate}`;
     
-    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&recur=RRULE:FREQ=YEARLY`;
+    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}`;
     
     window.open(googleCalendarUrl, '_blank');
   };
@@ -352,9 +374,67 @@ export default function Memorial({
   };
 
 
-  const thuanCuto = findMemberByName("Hoàng Đình Thuận");
-  const senComau = findMemberByName("Trần Thị Sen");
-  const minhTruongtoc = findMemberByName("Hoàng Đình Minh (Trưởng Tộc)");
+  const getAnniversaryDate = (m) => {
+    if (!m.isDeceased) return null;
+    const dateParts = m.deathDate ? m.deathDate.split(/[\/\-]/) : [];
+    if (dateParts.length >= 2) {
+      const day = parseInt(dateParts[0]);
+      const month = parseInt(dateParts[1]);
+      if (!isNaN(day) && !isNaN(month) && day >= 1 && day <= 31 && month >= 1 && month <= 12) {
+        return { day, month };
+      }
+    }
+    return null;
+  };
+
+  const getUpcomingSolarDateStr = (e) => {
+    const { day, month } = e.annDate;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let solarYear = today.getFullYear();
+    let target = getSolarDateOfLunar(solarYear, month, day);
+    const targetZero = new Date(target);
+    targetZero.setHours(0, 0, 0, 0);
+    if (targetZero < today) {
+      target = getSolarDateOfLunar(solarYear + 1, month, day);
+    }
+    const dStr = String(target.getDate()).padStart(2, '0');
+    const mStr = String(target.getMonth() + 1).padStart(2, '0');
+    return `${dStr}/${mStr}/${target.getFullYear()}`;
+  };
+
+  const individualEvents = members.filter(m => m.isDeceased).map(m => {
+    const annDate = getAnniversaryDate(m);
+    if (!annDate) return null;
+    const relationDesc = m.spouseId ? "Phu nhân" : (m.gender === "Nam" ? "Nam" : "Nữ");
+    const cardDesc = m.generation === 1 ? (m.gender === "Nam" ? "Thủy Tổ" : "Thủy Tổ Mẫu") : `Đời thứ ${m.generation} · ${relationDesc}`;
+    return {
+      id: `indiv-${m.id}`,
+      name: m.name,
+      annDate,
+      desc: cardDesc,
+      isHopKy: false,
+      member: m
+    };
+  }).filter(Boolean);
+
+  const hopKyMembers = members.filter(m => m.isDeceased && getAnniversaryDate(m) === null);
+
+  const hopKyEvent = hopKyMembers.length > 0 ? [{
+    id: "hopky",
+    name: "Giỗ Hợp Kỵ (Giỗ chung)",
+    annDate: { day: 18, month: 9 },
+    desc: `Giỗ tập thể cho ${hopKyMembers.length} tiên tổ không rõ ngày mất`,
+    isHopKy: true,
+    members: hopKyMembers
+  }] : [];
+
+  const allEvents = [...individualEvents, ...hopKyEvent].sort((a, b) => {
+    if (a.annDate.month !== b.annDate.month) {
+      return a.annDate.month - b.annDate.month;
+    }
+    return a.annDate.day - b.annDate.day;
+  });
 
   return (
     <div
@@ -576,68 +656,49 @@ export default function Memorial({
           </span>
         </div>
 
-        {/* Anniversary Card 1 */}
-        <div className="bg-paper-light border-l-4 border-gold-accent rounded shadow-sm p-4 flex items-center justify-between transition-all hover:shadow-md">
-          <div className="flex items-center gap-4">
-            <div className="text-center bg-paper-base border border-gold-accent/20 rounded px-3 py-1.5">
-              <span className="block font-bold text-lg text-wood-medium leading-none">04</span>
-              <span className="text-[9px] text-charcoal/50 uppercase font-semibold">Tháng 12</span>
-            </div>
-            <div>
-              <h4 className="font-display font-semibold text-sm text-wood-dark">Cụ Tổ Hoàng Đình Thuận</h4>
-              <p className="text-[11px] text-charcoal/60 mt-0.5">Đời thứ 3 - Phân chi II</p>
-            </div>
-          </div>
-          <button
-            onClick={() => handleAddToCalendar("Cụ Tổ Hoàng Đình Thuận", 12, 4, "Đời thứ 3 - Phân chi II")}
-            className="text-xs text-gold-accent hover:text-gold-light transition-colors font-semibold flex items-center gap-1.5 cursor-pointer"
-          >
-            <Calendar className="w-3.5 h-3.5" />
-            <span>Add lịch</span>
-          </button>
-        </div>
+        {allEvents.length === 0 ? (
+          <p className="text-xs text-charcoal/45 italic text-center py-8">Không có dữ liệu ngày giỗ.</p>
+        ) : (
+          allEvents.map(e => {
+            const formattedDay = e.annDate.day.toString().padStart(2, '0');
+            const formattedMonth = e.annDate.month.toString().padStart(2, '0');
+            const solarDateStr = getUpcomingSolarDateStr(e);
 
-        {/* Anniversary Card 2 */}
-        <div className="bg-paper-light border-l-4 border-gold-accent rounded shadow-sm p-4 flex items-center justify-between transition-all hover:shadow-md">
-          <div className="flex items-center gap-4">
-            <div className="text-center bg-paper-base border border-gold-accent/20 rounded px-3 py-1.5">
-              <span className="block font-bold text-lg text-wood-medium leading-none">12</span>
-              <span className="text-[9px] text-charcoal/50 uppercase font-semibold">Tháng 12</span>
-            </div>
-            <div>
-              <h4 className="font-display font-semibold text-sm text-wood-dark">Cố Mẫu Trần Thị Sen</h4>
-              <p className="text-[11px] text-charcoal/60 mt-0.5">Phu nhân đời thứ 7</p>
-            </div>
-          </div>
-          <button
-            onClick={() => handleAddToCalendar("Cố Mẫu Trần Thị Sen", 12, 12, "Phu nhân đời thứ 7")}
-            className="text-xs text-gold-accent hover:text-gold-light transition-colors font-semibold flex items-center gap-1.5 cursor-pointer"
-          >
-            <Calendar className="w-3.5 h-3.5" />
-            <span>Add lịch</span>
-          </button>
-        </div>
-
-        {/* Anniversary Card 3 */}
-        <div className="bg-paper-light border-l-4 border-gold-accent rounded shadow-sm p-4 flex items-center justify-between transition-all hover:shadow-md">
-          <div className="flex items-center gap-4">
-            <div className="text-center bg-paper-base border border-gold-accent/20 rounded px-3 py-1.5">
-              <span className="block font-bold text-lg text-wood-medium leading-none">25</span>
-              <span className="text-[9px] text-charcoal/50 uppercase font-semibold">Tháng 12</span>
-            </div>
-            <div>
-              <h4 className="font-display font-semibold text-sm text-wood-dark">Trưởng Tộc Hoàng Đình Minh</h4>
-              <p className="text-[11px] text-charcoal/60 mt-0.5">Đời thứ 11</p>
-            </div>
-          </div>
-          <button
-            onClick={() => handleAddToCalendar("Trưởng Tộc Hoàng Đình Minh", 12, 25, "Đời thứ 11")}
-            className="text-xs text-gold-accent hover:text-gold-light transition-colors font-semibold flex items-center gap-1.5 cursor-pointer"
-          >
-            <Calendar className="w-3.5 h-3.5" />
-            <span>Add lịch</span>
-          </button>
-        </div>
+            return (
+              <div key={e.id} className="bg-paper-light border-l-4 border-gold-accent rounded shadow-sm p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-all hover:shadow-md">
+                <div className="flex items-center gap-4 flex-grow">
+                  <div className="text-center bg-paper-base border border-gold-accent/20 rounded px-2.5 py-1.5 min-w-[70px] self-start sm:self-center">
+                    <span className="block font-bold text-lg text-wood-medium leading-none">{formattedDay}</span>
+                    <span className="text-[9px] text-charcoal/50 uppercase font-semibold">T. {formattedMonth} (Âm)</span>
+                  </div>
+                  <div className="flex-grow min-w-0">
+                    <h4 className="font-display font-semibold text-sm text-wood-dark">{e.name}</h4>
+                    <p className="text-[11px] text-charcoal/60 mt-0.5">{e.desc}</p>
+                    <p className="text-[10px] text-wood-medium/80 mt-0.5 font-medium">Dương lịch tiếp theo: {solarDateStr}</p>
+                    
+                    {e.isHopKy && (
+                      <div className="mt-2 text-[10px] text-charcoal/70 bg-gold-accent/5 p-2 rounded border border-gold-accent/10 max-h-[120px] overflow-y-auto max-w-xl">
+                        <span className="font-semibold block mb-1">Danh sách tiên tổ quy kỵ ngày này:</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1">
+                          {e.members.map(m => (
+                            <span key={m.id} className="truncate">• {m.name} (Đời {m.generation})</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleAddToCalendar(e.name, e.annDate.month, e.annDate.day, e.desc)}
+                  className="text-xs text-gold-accent hover:text-gold-light transition-colors font-semibold flex items-center gap-1.5 cursor-pointer self-end sm:self-center"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Add lịch</span>
+                </button>
+              </div>
+            );
+          })
+        )}
 
       </div>
     </div>

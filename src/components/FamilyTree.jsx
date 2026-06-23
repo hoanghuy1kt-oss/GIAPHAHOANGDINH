@@ -34,6 +34,7 @@ export default function FamilyTree({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [hoveredMember, setHoveredMember] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
+  const [tooltipDirection, setTooltipDirection] = useState("top");
 
   const treeStateRef = useRef({ pan: { x: 100, y: 50 }, scale: 1 });
   useEffect(() => {
@@ -615,9 +616,12 @@ export default function FamilyTree({
                           onMouseEnter={(e) => {
                             if (window.innerWidth <= 768) return;
                             const rect = e.currentTarget.getBoundingClientRect();
+                            const spaceAbove = rect.top;
+                            const showBelow = spaceAbove < 240;
+                            setTooltipDirection(showBelow ? "bottom" : "top");
                             setHoverPosition({
                               x: rect.left + rect.width / 2,
-                              y: rect.top - 10
+                              y: showBelow ? rect.bottom + 10 : rect.top - 10
                             });
                             setHoveredMember(node);
                           }}
@@ -715,12 +719,19 @@ export default function FamilyTree({
       {/* Hover Popup Tooltip for Desktop */}
       {hoveredMember && (
         <div 
-          className="fixed z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full flex flex-col items-center animate-fade-in"
+          className={`fixed z-50 pointer-events-none transform -translate-x-1/2 flex flex-col items-center animate-fade-in ${
+            tooltipDirection === "top" ? "-translate-y-full" : "translate-y-0"
+          }`}
           style={{
             left: `${hoverPosition.x}px`,
             top: `${hoverPosition.y}px`,
           }}
         >
+          {/* Upward arrow if tooltip is displayed below */}
+          {tooltipDirection === "bottom" && (
+            <div className="w-3 h-3 bg-wood-dark border-l-2 border-t-2 border-gold-accent rotate-45 -mb-1.5 shadow-md z-10"></div>
+          )}
+
           <div className="bg-[#FAF7F0] border-2 border-gold-accent rounded-xl shadow-2xl p-4 w-72 flex flex-col gap-3 text-sans relative overflow-hidden select-none border-t-4 border-t-wood-dark">
             <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-gold-accent/40"></div>
             <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-gold-accent/40"></div>
@@ -778,7 +789,11 @@ export default function FamilyTree({
               )}
             </div>
           </div>
-          <div className="w-3 h-3 bg-[#FAF7F0] border-r-2 border-b-2 border-gold-accent rotate-45 -mt-1.5 shadow-md"></div>
+
+          {/* Downward arrow if tooltip is displayed above */}
+          {tooltipDirection === "top" && (
+            <div className="w-3 h-3 bg-[#FAF7F0] border-r-2 border-b-2 border-gold-accent rotate-45 -mt-1.5 shadow-md"></div>
+          )}
         </div>
       )}
     </div>

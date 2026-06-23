@@ -29,7 +29,7 @@ function AppInner() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const logoUrl = "/logo.png";
+  const logoUrl = "/logo.webp";
 
   // Close mobile menu on route change
   useEffect(() => {

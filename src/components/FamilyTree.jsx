@@ -412,9 +412,6 @@ export default function FamilyTree({
               </div>
 
               <div className="relative">
-                <h3 className="text-xs font-bold text-wood-dark uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                  <Search className="w-3.5 h-3.5 text-gold-accent" /> Tìm kiếm thành viên
-                </h3>
                 <div className="relative">
                   <input
                     type="text"

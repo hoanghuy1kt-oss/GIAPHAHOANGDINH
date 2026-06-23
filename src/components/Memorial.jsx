@@ -359,7 +359,7 @@ export default function Memorial({
   return (
     <div
       className="w-full min-h-screen flex flex-col font-sans select-text pb-12 fade-in bg-cover bg-center bg-fixed bg-no-repeat"
-      style={{ backgroundImage: "url('/assets/background.png')" }}
+      style={{ backgroundImage: "url('/assets/background.webp')" }}
     >
 
       {/* 1. Header titles */}
@@ -419,7 +419,7 @@ export default function Memorial({
           {/* Altar image box — absolutely fills the padding-top wrapper */}
           <div
             className="absolute inset-0 rounded-lg border-2 border-gold-accent/40 shadow-2xl overflow-hidden bg-cover bg-center"
-            style={{ backgroundImage: `url('/assets/altar_bg.png?v=2')` }}
+            style={{ backgroundImage: `url('/assets/altar_bg.webp?v=2')` }}
           >
             {/* Subtle dark overlay for depth */}
             <div className="absolute inset-0 bg-black/45 pointer-events-none"></div>

@@ -17,7 +17,7 @@ export default function Intro({ setView, logoUrl }) {
         {/* Family Logo */}
         <div className="w-36 h-36 md:w-44 md:h-44 mb-6 rounded-full border border-gold-accent/30 p-2 bg-paper-base shadow-md flex items-center justify-center">
           <img
-            src={logoUrl || "/assets/logo.png"}
+            src={logoUrl || "/assets/logo.webp"}
             alt="Logo họ Hoàng Đình"
             className="w-full h-full object-contain rounded-full"
             onError={(e) => {

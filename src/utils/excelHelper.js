@@ -1,5 +1,55 @@
 import * as XLSX from "xlsx";
 
+// Helper to recursively calculate generations based on parent-child links
+export function calculateGenerations(members) {
+  const membersMap = new Map(members.map(m => [m.id, { ...m, generation: null }]));
+  
+  // Find roots (members with no parents in the list)
+  const roots = [];
+  membersMap.forEach(m => {
+    const hasFather = m.fatherId && membersMap.has(m.fatherId);
+    const hasMother = m.motherId && membersMap.has(m.motherId);
+    if (!hasFather && !hasMother) {
+      roots.push(m);
+    }
+  });
+
+  // Helper to recursively assign generations
+  const assignGen = (member, gen) => {
+    if (member.generation !== null && member.generation <= gen) return;
+    member.generation = gen;
+    
+    // Set spouse's generation
+    if (member.spouseId) {
+      const spouse = membersMap.get(member.spouseId);
+      if (spouse && spouse.generation !== gen) {
+        assignGen(spouse, gen);
+      }
+    }
+
+    // Set children's generation
+    membersMap.forEach(child => {
+      if (child.fatherId === member.id || child.motherId === member.id) {
+        assignGen(child, gen + 1);
+      }
+    });
+  };
+
+  // Start assigning from roots, default starting generation is 1
+  roots.forEach(root => {
+    assignGen(root, 1);
+  });
+
+  // Default fallback for any disconnected nodes
+  membersMap.forEach(m => {
+    if (m.generation === null) {
+      m.generation = 1;
+    }
+  });
+
+  return Array.from(membersMap.values());
+}
+
 export const parseExcel = (file) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -20,7 +70,7 @@ export const parseExcel = (file) => {
         const tributeSheet = workbook.Sheets["Lời tri ân"];
         const rawTributes = tributeSheet ? XLSX.utils.sheet_to_json(tributeSheet) : [];
         
-        // Map excel columns to member fields
+        // Map excel columns to member fields (without Generation column)
         const parsedMembers = rawMembers.map((row) => {
           // Read parentId from "ID Cha/Mẹ", or fall back to "ID Cha" or "ID Mẹ" for compatibility
           const parentIdVal = row["ID Cha/Mẹ"] ?? row["ID Cha"] ?? row["ID Mẹ"] ?? null;
@@ -30,7 +80,6 @@ export const parseExcel = (file) => {
             id: parseInt(row["ID"]) || 0,
             name: String(row["Họ và Tên"] || "").trim(),
             gender: String(row["Giới tính"] || "Nam").trim(),
-            generation: parseInt(row["Thế hệ (Đời)"]) || 1,
             birthDate: String(row["Năm sinh"] ?? "").trim(),
             deathDate: String(row["Năm mất"] ?? "").trim(),
             isDeceased: String(row["Đã mất"] || "").trim() === "Đúng" || row["Đã mất"] === true,
@@ -48,7 +97,7 @@ export const parseExcel = (file) => {
         }).filter(m => m.id > 0 && m.name !== "");
 
         // Auto-resolve fatherId and motherId based on parentId and spouse connections
-        const members = parsedMembers.map((m) => {
+        const resolvedParentsMembers = parsedMembers.map((m) => {
           const clean = { ...m };
           const pId = m.parentId;
           if (pId) {
@@ -71,6 +120,9 @@ export const parseExcel = (file) => {
           return clean;
         });
 
+        // Auto-calculate generations for all members dynamically
+        const members = calculateGenerations(resolvedParentsMembers);
+
         const tributes = rawTributes.map((row) => ({
           id: row["ID"] || `trib_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
           name: String(row["Người gửi"] || "").trim(),
@@ -91,12 +143,11 @@ export const parseExcel = (file) => {
 };
 
 export const exportToExcel = (members, tributes = []) => {
-  // Map members to Excel structure with a single "ID Cha/Mẹ" column
+  // Map members to Excel structure without "Thế hệ (Đời)" column
   const memberRows = members.map((m) => ({
     "ID": m.id,
     "Họ và Tên": m.name,
     "Giới tính": m.gender,
-    "Thế hệ (Đời)": m.generation,
     "Năm sinh": m.birthDate || "",
     "Năm mất": m.deathDate || "",
     "Đã mất": m.isDeceased ? "Đúng" : "Sai",
@@ -107,7 +158,7 @@ export const exportToExcel = (members, tributes = []) => {
     "Tiểu sử & Sự nghiệp": m.biography || "",
     "ID Cha/Mẹ": m.fatherId || m.motherId || "", // Save whichever parent ID is available
     "ID Vợ/Chồng": m.spouseId || "",
-    "Liên kết Ảnh đại diện (URL)": m.avatar && m.avatar.startsWith("data:") ? "" : (m.avatar || "") // Skip base64 to avoid Excel character limit crash
+    "Liên kết Ảnh đại diện (URL)": m.avatar && m.avatar.startsWith("data:") ? "" : (m.avatar || "")
   }));
 
   const tributeRows = tributes.map((t) => ({
@@ -135,7 +186,6 @@ export const downloadExcelTemplate = () => {
       "ID": 1,
       "Họ và Tên": "Hoàng Đình Cương",
       "Giới tính": "Nam",
-      "Thế hệ (Đời)": 1,
       "Năm sinh": "1820",
       "Năm mất": "1895",
       "Đã mất": "Đúng",
@@ -152,7 +202,6 @@ export const downloadExcelTemplate = () => {
       "ID": 2,
       "Họ và Tên": "Nguyễn Thị Lành",
       "Giới tính": "Nữ",
-      "Thế hệ (Đời)": 1,
       "Năm sinh": "1825",
       "Năm mất": "1902",
       "Đã mất": "Đúng",

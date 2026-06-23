@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Heart, Calendar, MapPin, User, ChevronRight, Flower, Edit3, Send, CheckCircle, ChevronDown, ChevronUp, Upload } from "lucide-react";
 import { dbSaveRequest } from "../firebase";
+import { resizeImage } from "../utils/imageHelper";
 
 export default function MemberModal({ member, allMembers, onClose, onSelectMember }) {
   if (!member) return null;
@@ -55,20 +56,17 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
     setUpdateFields(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleAvatarUpload = (e) => {
+  const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Limit file size to 500KB to prevent Firestore load issues
-    if (file.size > 500 * 1024) {
-      alert("Kích thước ảnh đại diện quá lớn (tối đa 500KB). Vui lòng chọn ảnh khác.");
-      return;
+    try {
+      const resizedBase64 = await resizeImage(file, 300, 0.7);
+      handleFieldChange("avatar", resizedBase64);
+    } catch (err) {
+      console.error("Lỗi xử lý ảnh:", err);
+      alert("Có lỗi xảy ra khi xử lý ảnh. Vui lòng thử lại.");
     }
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      handleFieldChange("avatar", reader.result);
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleSubmitRequest = async (e) => {

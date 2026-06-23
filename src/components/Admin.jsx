@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ArrowLeft, Save, Plus, Edit2, Trash2, ShieldAlert, LogOut, RefreshCw, Download, Upload, Bell, CheckCircle, XCircle, ChevronDown, ChevronUp, User, Eye, EyeOff } from "lucide-react";
 import { parseExcel, downloadExcelTemplate } from "../utils/excelHelper";
 import { dbGetRequests, dbDeleteRequest } from "../firebase";
+import { resizeImage } from "../utils/imageHelper";
 
 export default function Admin({
   members,
@@ -428,21 +429,19 @@ export default function Admin({
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files[0];
                           if (file) {
-                            if (file.size > 500 * 1024) {
-                              alert("Kích thước ảnh đại diện quá lớn (tối đa 500KB). Vui lòng chọn ảnh khác.");
-                              return;
-                            }
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
+                            try {
+                              const resizedBase64 = await resizeImage(file, 300, 0.7);
                               setFormData(prev => ({
                                 ...prev,
-                                avatar: event.target.result
+                                avatar: resizedBase64
                               }));
-                            };
-                            reader.readAsDataURL(file);
+                            } catch (err) {
+                              console.error("Lỗi xử lý ảnh:", err);
+                              alert("Có lỗi xảy ra khi xử lý ảnh. Vui lòng thử lại.");
+                            }
                           }
                         }}
                         className="hidden"

@@ -59,9 +59,9 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
     const file = e.target.files[0];
     if (!file) return;
 
-    // Limit file size to 1MB to prevent Firestore load issues
-    if (file.size > 1024 * 1024) {
-      alert("Dung lượng ảnh vượt quá 1MB. Vui lòng chọn ảnh nhỏ hơn.");
+    // Limit file size to 500KB to prevent Firestore load issues
+    if (file.size > 500 * 1024) {
+      alert("Kích thước ảnh đại diện quá lớn (tối đa 500KB). Vui lòng chọn ảnh khác.");
       return;
     }
     const reader = new FileReader();

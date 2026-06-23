@@ -431,6 +431,10 @@ export default function Admin({
                         onChange={(e) => {
                           const file = e.target.files[0];
                           if (file) {
+                            if (file.size > 500 * 1024) {
+                              alert("Kích thước ảnh đại diện quá lớn (tối đa 500KB). Vui lòng chọn ảnh khác.");
+                              return;
+                            }
                             const reader = new FileReader();
                             reader.onload = (event) => {
                               setFormData(prev => ({

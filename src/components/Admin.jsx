@@ -123,7 +123,8 @@ export default function Admin({
     deathPlace: "Nơi mất",
     burialPlace: "Nơi an táng",
     biography: "Tiểu sử & Sự nghiệp",
-    avatar: "Ảnh đại diện"
+    avatar: "Ảnh đại diện",
+    childNo: "Con thứ"
   };
 
   const pendingCount = updateRequests.filter(r => r.status === "pending").length;
@@ -146,7 +147,8 @@ export default function Admin({
     biography: "",
     avatar: "",
     livingPlace: "",
-    deathPlace: ""
+    deathPlace: "",
+    childNo: ""
   });
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -217,7 +219,8 @@ export default function Admin({
       biography: "",
       avatar: "",
       livingPlace: "",
-      deathPlace: ""
+      deathPlace: "",
+      childNo: ""
     });
   };
 
@@ -239,7 +242,8 @@ export default function Admin({
       biography: member.biography || "",
       avatar: member.avatar || "",
       livingPlace: member.livingPlace || "",
-      deathPlace: member.deathPlace || ""
+      deathPlace: member.deathPlace || "",
+      childNo: member.childNo || ""
     });
   };
 
@@ -460,7 +464,7 @@ export default function Admin({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="text-xs font-bold text-wood-medium uppercase tracking-wider block mb-1">Họ và Tên</label>
                   <input
@@ -496,6 +500,18 @@ export default function Admin({
                     value={formData.generation}
                     onChange={handleInputChange}
                     required
+                    className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-wood-medium uppercase tracking-wider block mb-1">Con thứ (Thứ tự)</label>
+                  <input
+                    type="text"
+                    name="childNo"
+                    value={formData.childNo || ""}
+                    onChange={handleInputChange}
+                    placeholder="VD: Trưởng, 2, Út..."
+                    autoComplete="off"
                     className="w-full bg-paper-base border border-gold-accent/20 rounded px-3 py-2 text-xs focus:outline-none focus:border-gold-accent"
                   />
                 </div>

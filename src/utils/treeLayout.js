@@ -37,6 +37,49 @@ export function calculateTreeLayout(members) {
     }
   });
 
+  // Sort children for each parent based on birth order/year
+  Object.values(memberMap).forEach(node => {
+    if (node.children && node.children.length > 0) {
+      node.children.sort((idA, idB) => {
+        const a = memberMap[idA];
+        const b = memberMap[idB];
+
+        const getOrderValue = (m) => {
+          if (!m) return 99999;
+          const val = String(m.childNo || "").trim().toLowerCase();
+          if (!val) {
+            const yearStr = m.birthDate ? (m.birthDate.match(/\d{4}/)?.[0] || "") : "";
+            return yearStr ? parseInt(yearStr) * 10 : 999999;
+          }
+          const num = parseInt(val.match(/\d+/)?.[0]);
+          if (!isNaN(num)) return num * 10;
+
+          if (val.includes("trưởng") || val.includes("cả") || val === "đầu") return 10;
+          if (val.includes("hai") || val === "nhì") return 20;
+          if (val.includes("ba")) return 30;
+          if (val.includes("tư") || val.includes("bốn")) return 40;
+          if (val.includes("năm")) return 50;
+          if (val.includes("sáu")) return 60;
+          if (val.includes("bảy")) return 70;
+          if (val.includes("tám")) return 80;
+          if (val.includes("chín")) return 90;
+          if (val.includes("mười")) return 100;
+          if (val.includes("út")) return 99990;
+
+          const yearStr = m.birthDate ? (m.birthDate.match(/\d{4}/)?.[0] || "") : "";
+          return yearStr ? parseInt(yearStr) * 10 : 999999;
+        };
+
+        const orderA = getOrderValue(a);
+        const orderB = getOrderValue(b);
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+        return a.id - b.id;
+      });
+    }
+  });
+
   // 3. Recursive Pass 1: Compute subtree widths for anchors
   // We only calculate widths for "anchor" nodes (males/husbands or single members).
   // Spouses are placed next to them and count towards their width.

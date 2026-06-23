@@ -30,7 +30,8 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
     deathPlace: member.deathPlace || "",
     burialPlace: member.burialPlace || "",
     biography: member.biography || "",
-    avatar: member.avatar || ""
+    avatar: member.avatar || "",
+    childNo: member.childNo || ""
   });
 
   // Reset/sync form state whenever the selected member changes
@@ -46,6 +47,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
       burialPlace: member.burialPlace || "",
       biography: member.biography || "",
       avatar: member.avatar || "",
+      childNo: member.childNo || "",
     });
     setSubmitted(false);
     setIsEditing(false);
@@ -77,7 +79,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
       return;
     }
 
-    const editKeys = ["name", "birthDate", "deathDate", "isDeceased", "birthPlace", "livingPlace", "deathPlace", "burialPlace", "biography", "avatar"];
+    const editKeys = ["name", "birthDate", "deathDate", "isDeceased", "birthPlace", "livingPlace", "deathPlace", "burialPlace", "biography", "avatar", "childNo"];
     const changes = {};
     const original = {};
 
@@ -290,16 +292,29 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-xs font-semibold text-wood-dark block mb-1">Nơi sinh</label>
-                  <input
-                    type="text"
-                    value={updateFields.birthPlace}
-                    onChange={e => handleFieldChange("birthPlace", e.target.value)}
-                    placeholder="VD: Hưng Nguyên, Nghệ An"
-                    autoComplete="off"
-                    className="w-full text-sm border border-gold-accent/30 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-wood-dark block mb-1">Con thứ (Thứ tự)</label>
+                    <input
+                      type="text"
+                      value={updateFields.childNo || ""}
+                      onChange={e => handleFieldChange("childNo", e.target.value)}
+                      placeholder="VD: Trưởng, 2, Út..."
+                      autoComplete="off"
+                      className="w-full text-sm border border-gold-accent/30 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-wood-dark block mb-1">Nơi sinh</label>
+                    <input
+                      type="text"
+                      value={updateFields.birthPlace}
+                      onChange={e => handleFieldChange("birthPlace", e.target.value)}
+                      placeholder="VD: Hưng Nguyên, Nghệ An"
+                      autoComplete="off"
+                      className="w-full text-sm border border-gold-accent/30 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent/30"
+                    />
+                  </div>
                 </div>
 
                 {!updateFields.isDeceased ? (
@@ -345,6 +360,7 @@ export default function MemberModal({ member, allMembers, onClose, onSelectMembe
               <div className="divide-y divide-gold-accent/10">
                 <InfoRow icon={<Calendar />} label="Sinh - Mất"
                   value={`${member.birthDate || "???"} – ${member.isDeceased ? (member.deathDate || "???") : "Nay"}`} />
+                {member.childNo && <InfoRow icon={<User />} label="Con thứ" value={member.childNo} />}
                 <InfoRow icon={<MapPin />} label="Nơi sinh" value={member.birthPlace || "Chưa cập nhật"} />
                 {member.livingPlace && <InfoRow icon={<MapPin />} label="Nơi sống" value={member.livingPlace} />}
                 {member.isDeceased && member.deathPlace && <InfoRow icon={<MapPin className="text-red-700/60" />} label="Nơi mất" value={member.deathPlace} />}

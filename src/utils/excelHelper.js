@@ -92,7 +92,8 @@ export const parseExcel = (file) => {
             fatherId: null,
             motherId: null,
             spouseId: row["ID Vợ/Chồng"] ? parseInt(row["ID Vợ/Chồng"]) : null,
-            avatar: String(row["Liên kết Ảnh đại diện (URL)"] ?? "").trim()
+            avatar: String(row["Liên kết Ảnh đại diện (URL)"] ?? "").trim(),
+            childNo: String(row["Con thứ"] ?? "").trim()
           };
         }).filter(m => m.id > 0 && m.name !== "");
 
@@ -157,6 +158,7 @@ export const exportToExcel = (members, tributes = []) => {
     "Nơi an táng": m.burialPlace || "",
     "Tiểu sử & Sự nghiệp": m.biography || "",
     "ID Cha/Mẹ": m.fatherId || m.motherId || "", // Save whichever parent ID is available
+    "Con thứ": m.childNo || "",
     "ID Vợ/Chồng": m.spouseId || "",
     "Liên kết Ảnh đại diện (URL)": m.avatar && m.avatar.startsWith("data:") ? "" : (m.avatar || "")
   }));
@@ -195,6 +197,7 @@ export const downloadExcelTemplate = () => {
       "Nơi an táng": "Nghĩa trang Dòng họ Hoàng Đình, Hưng Nguyên, Nghệ An",
       "Tiểu sử & Sự nghiệp": "Cụ tổ dòng họ (Thủy Tổ) họ Hoàng Đình Nghệ An. Đỗ Tú tài khoa Quý Mão dưới triều Nguyễn, mở lớp dạy học, bốc thuốc cứu người.",
       "ID Cha/Mẹ": "",
+      "Con thứ": "",
       "ID Vợ/Chồng": 2,
       "Liên kết Ảnh đại diện (URL)": ""
     },
@@ -211,6 +214,7 @@ export const downloadExcelTemplate = () => {
       "Nơi an táng": "Nghĩa trang Dòng họ Hoàng Đình, Hưng Nguyên, Nghệ An",
       "Tiểu sử & Sự nghiệp": "Thủy Tổ Mẫu họ Hoàng Đình. Cụ bà hiền hậu đức độ, tần tảo chăm lo gia đình dòng họ.",
       "ID Cha/Mẹ": "",
+      "Con thứ": "",
       "ID Vợ/Chồng": 1,
       "Liên kết Ảnh đại diện (URL)": ""
     }
